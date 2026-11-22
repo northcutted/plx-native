@@ -239,7 +239,7 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-22T08:22:32Z",
+ "generated": "2026-11-22T09:02:58Z",
  "metrics": [
   {
    "change30_pct": 19.7,
@@ -265,16 +265,16 @@
   {
    "change30_pct": 24.6,
    "change7_pct": -12.4,
-   "d30": 333.0,
-   "delta30": 82.0,
+   "d30": 333,
+   "delta30": 82,
    "delta7": -59.0,
    "group": "ci",
    "id": "pr_wait",
    "kind": "wait",
    "label": "PR CI wait",
-   "n_now": 200,
+   "n_now": 201,
    "n_prev": 144,
-   "now": 415.0,
+   "now": 415,
    "prev7": 474.0,
    "shown": true,
    "state": "flat",
@@ -286,8 +286,8 @@
   {
    "change30_pct": 23.9,
    "change7_pct": -9.1,
-   "d30": 330.0,
-   "delta30": 79.0,
+   "d30": 330,
+   "delta30": 79,
    "delta7": -41.0,
    "group": "ci",
    "id": "push_wait",
@@ -487,7 +487,7 @@
   {
    "change30_pct": 27.2,
    "change7_pct": 3.2,
-   "d30": 314,
+   "d30": 314.0,
    "delta30": 85.5,
    "delta7": 12.5,
    "group": "ci",
@@ -527,10 +527,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 4.2,
+   "change30_pct": 4.4,
    "change7_pct": -22.4,
-   "d30": 321,
-   "delta30": 13.5,
+   "d30": 320.5,
+   "delta30": 14.0,
    "delta7": -96.5,
    "group": "ci",
    "id": "ci|host unit tests (default features)",
@@ -550,7 +550,7 @@
   {
    "change30_pct": 58.4,
    "change7_pct": -6.6,
-   "d30": 161,
+   "d30": 161.0,
    "delta30": 94.0,
    "delta7": -18.0,
    "group": "ci",
@@ -571,7 +571,7 @@
   {
    "change30_pct": 25.1,
    "change7_pct": 12.2,
-   "d30": 199,
+   "d30": 199.0,
    "delta30": 50.0,
    "delta7": 27.0,
    "group": "ci",
@@ -590,10 +590,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": -11.6,
+   "change30_pct": -10.6,
    "change7_pct": -36.9,
-   "d30": 267.0,
-   "delta30": -31.0,
+   "d30": 264,
+   "delta30": -28.0,
    "delta7": -138.0,
    "group": "ci",
    "id": "ci|host unit tests (hostsim)",
@@ -632,10 +632,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 21.6,
+   "change30_pct": 21.3,
    "change7_pct": -27.6,
-   "d30": 178,
-   "delta30": 38.5,
+   "d30": 178.5,
+   "delta30": 38.0,
    "delta7": -82.5,
    "group": "ci",
    "id": "ci|host harness tests",
@@ -762,7 +762,7 @@
   {
    "change30_pct": 0.0,
    "change7_pct": 0.0,
-   "d30": 5,
+   "d30": 5.0,
    "delta30": 0.0,
    "delta7": 0.0,
    "group": "ci",
@@ -783,7 +783,7 @@
   {
    "change30_pct": 0.0,
    "change7_pct": 0.0,
-   "d30": 3.0,
+   "d30": 3,
    "delta30": 0.0,
    "delta7": 0.0,
    "group": "ci",
@@ -804,7 +804,7 @@
   {
    "change30_pct": 0.0,
    "change7_pct": 0.0,
-   "d30": 3.0,
+   "d30": 3,
    "delta30": 0.0,
    "delta7": 0.0,
    "group": "ci",
