@@ -10,7 +10,7 @@
     "sha": "88626a73a"
    },
    "last_seen": "2026-11-21T12:46:20Z",
-   "new": true,
+   "new": false,
    "status": "Active",
    "test": "plx_media::route::decision::track_memory_tests::a_menu_off_is_stored_as_off_and_beats_the_accounts_rule"
   },
@@ -24,7 +24,7 @@
     "sha": "88626a73a"
    },
    "last_seen": "2026-11-21T12:46:20Z",
-   "new": true,
+   "new": false,
    "status": "Active",
    "test": "plx_media::route::decision::track_memory_tests::a_pick_before_the_first_frame_ends_the_names_rematch"
   },
@@ -38,7 +38,7 @@
     "sha": "88626a73a"
    },
    "last_seen": "2026-11-21T12:46:20Z",
-   "new": true,
+   "new": false,
    "status": "Active",
    "test": "plx_media::route::decision::track_memory_tests::a_pick_on_one_episode_is_what_the_next_episode_resolves_to"
   },
@@ -52,7 +52,7 @@
     "sha": "88626a73a"
    },
    "last_seen": "2026-11-21T12:46:20Z",
-   "new": true,
+   "new": false,
    "status": "Active",
    "test": "plx_media::route::decision::track_memory_tests::mp4_forced_found_after_names_arrive"
   },
@@ -66,7 +66,7 @@
     "sha": "88626a73a"
    },
    "last_seen": "2026-11-21T12:46:20Z",
-   "new": true,
+   "new": false,
    "status": "Active",
    "test": "plx_media::route::decision::track_memory_tests::the_names_rematch_returns_what_it_committed"
   },
@@ -80,7 +80,7 @@
     "sha": "88626a73a"
    },
    "last_seen": "2026-11-21T12:46:20Z",
-   "new": true,
+   "new": false,
    "status": "Active",
    "test": "plxnative_modules::app::run::lifecycle_regression_tests::a_pick_on_one_episode_is_what_the_next_episode_plays"
   },
@@ -94,7 +94,7 @@
     "sha": "88626a73a"
    },
    "last_seen": "2026-11-21T12:46:20Z",
-   "new": true,
+   "new": false,
    "status": "Active",
    "test": "plxnative_modules::app::run::lifecycle_regression_tests::forced_only_on_one_episode_draws_the_next_episodes_forced_track"
   },
@@ -239,13 +239,13 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-22T12:35:36Z",
+ "generated": "2026-11-22T12:48:59Z",
  "metrics": [
   {
-   "change30_pct": 19.0,
+   "change30_pct": 18.1,
    "change7_pct": 22.6,
-   "d30": 202.5,
-   "delta30": 38.5,
+   "d30": 204,
+   "delta30": 37,
    "delta7": 44.5,
    "group": "ci",
    "id": "sim|macOS simulator build + launch",
@@ -263,10 +263,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 25.0,
+   "change30_pct": 25.2,
    "change7_pct": -11.7,
-   "d30": 332,
-   "delta30": 83,
+   "d30": 331.5,
+   "delta30": 83.5,
    "delta7": -55,
    "group": "ci",
    "id": "pr_wait",
@@ -284,10 +284,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 23.6,
+   "change30_pct": 24.2,
    "change7_pct": -9.3,
-   "d30": 330,
-   "delta30": 78.0,
+   "d30": 328.5,
+   "delta30": 79.5,
    "delta7": -42.0,
    "group": "ci",
    "id": "push_wait",
@@ -443,10 +443,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 25.4,
+   "change30_pct": 25.8,
    "change7_pct": -5.8,
-   "d30": 2060.5,
-   "delta30": 523.5,
+   "d30": 2054,
+   "delta30": 530.0,
    "delta7": -158.0,
    "group": "ci",
    "id": "minutes",
@@ -464,18 +464,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 23.0,
+   "change30_pct": 23.1,
    "change7_pct": -0.5,
    "d30": 938.0,
-   "delta30": 216.0,
-   "delta7": -6,
+   "delta30": 216.5,
+   "delta7": -5.5,
    "group": "ci",
    "id": "nightly|ARM build + gates / build + verify",
    "kind": "job",
    "label": "Nightly: ARM build + gates / build + verify",
-   "n_now": 33,
+   "n_now": 34,
    "n_prev": 5,
-   "now": 1154,
+   "now": 1154.5,
    "prev7": 1160,
    "shown": true,
    "state": "flat",
@@ -487,8 +487,8 @@
   {
    "change30_pct": 27.4,
    "change7_pct": 3.4,
-   "d30": 314,
-   "delta30": 86,
+   "d30": 314.0,
+   "delta30": 86.0,
    "delta7": 13,
    "group": "ci",
    "id": "ci|armv7 cross-build and artifact assertions",
@@ -506,10 +506,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 34.7,
+   "change30_pct": 34.2,
    "change7_pct": 4.5,
-   "d30": 259,
-   "delta30": 90,
+   "d30": 260.0,
+   "delta30": 89.0,
    "delta7": 15.0,
    "group": "ci",
    "id": "sim|Linux simulator build + launch",
@@ -527,10 +527,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 5.0,
+   "change30_pct": 5.3,
    "change7_pct": -22.0,
-   "d30": 320,
-   "delta30": 16,
+   "d30": 319.0,
+   "delta30": 17.0,
    "delta7": -95,
    "group": "ci",
    "id": "ci|host unit tests (default features)",
@@ -548,10 +548,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 58.4,
+   "change30_pct": 58.9,
    "change7_pct": -6.6,
-   "d30": 161,
-   "delta30": 94,
+   "d30": 160.5,
+   "delta30": 94.5,
    "delta7": -18,
    "group": "ci",
    "id": "ci|host lint + type-checks",
@@ -569,10 +569,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 25.1,
+   "change30_pct": 24.8,
    "change7_pct": 12.2,
-   "d30": 199,
-   "delta30": 50,
+   "d30": 199.5,
+   "delta30": 49.5,
    "delta7": 27,
    "group": "ci",
    "id": "ci|host python/shell/C gates",
@@ -590,10 +590,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": -9.6,
+   "change30_pct": -8.5,
    "change7_pct": -36.9,
-   "d30": 261.0,
-   "delta30": -25.0,
+   "d30": 258,
+   "delta30": -22,
    "delta7": -138,
    "group": "ci",
    "id": "ci|host unit tests (hostsim)",
@@ -611,10 +611,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 21.1,
+   "change30_pct": 20.8,
    "change7_pct": -27.1,
-   "d30": 180,
-   "delta30": 38,
+   "d30": 180.5,
+   "delta30": 37.5,
    "delta7": -81,
    "group": "ci",
    "id": "ci|host harness tests",
@@ -634,8 +634,8 @@
   {
    "change30_pct": 53.9,
    "change7_pct": -4.6,
-   "d30": 141,
-   "delta30": 76,
+   "d30": 141.0,
+   "delta30": 76.0,
    "delta7": -10.5,
    "group": "ci",
    "id": "sim|macOS tests against bundled FFmpeg and ASS",
@@ -701,14 +701,14 @@
    "change7_pct": 25.0,
    "d30": 20.5,
    "delta30": 9.5,
-   "delta7": 6,
+   "delta7": 6.0,
    "group": "ci",
    "id": "nightly|publish nightly prerelease",
    "kind": "job",
    "label": "Nightly: publish nightly prerelease",
-   "n_now": 33,
+   "n_now": 34,
    "n_prev": 5,
-   "now": 30,
+   "now": 30.0,
    "prev7": 24,
    "shown": false,
    "state": "flat",
@@ -722,14 +722,14 @@
    "change7_pct": 8.0,
    "d30": 17.0,
    "delta30": 10.0,
-   "delta7": 2,
+   "delta7": 2.0,
    "group": "ci",
    "id": "nightly|plan today's nightly",
    "kind": "job",
    "label": "Nightly: plan today's nightly",
-   "n_now": 33,
+   "n_now": 34,
    "n_prev": 5,
-   "now": 27,
+   "now": 27.0,
    "prev7": 25,
    "shown": false,
    "state": "flat",
@@ -741,8 +741,8 @@
   {
    "change30_pct": 5.3,
    "change7_pct": 5.3,
-   "d30": 19,
-   "delta30": 1,
+   "d30": 19.0,
+   "delta30": 1.0,
    "delta7": 1.0,
    "group": "ci",
    "id": "sim|Windows launcher syntax",
@@ -762,8 +762,8 @@
   {
    "change30_pct": 0.0,
    "change7_pct": 0.0,
-   "d30": 5,
-   "delta30": 0,
+   "d30": 5.0,
+   "delta30": 0.0,
    "delta7": 0,
    "group": "ci",
    "id": "ci|which gates apply",
@@ -783,8 +783,8 @@
   {
    "change30_pct": 0.0,
    "change7_pct": 0.0,
-   "d30": 3.0,
-   "delta30": 0.0,
+   "d30": 3,
+   "delta30": 0,
    "delta7": 0,
    "group": "ci",
    "id": "ci|cross-build (armv7) + artifact assertions",
@@ -804,8 +804,8 @@
   {
    "change30_pct": 0.0,
    "change7_pct": 0.0,
-   "d30": 3.0,
-   "delta30": 0.0,
+   "d30": 3,
+   "delta30": 0,
    "delta7": 0,
    "group": "ci",
    "id": "ci|host checks (NOT a device gate)",
@@ -913,7 +913,7 @@
    "group": "ci",
    "id": "nightly|ARM build + gates / build + verify",
    "label": "Nightly: ARM build + gates / build + verify",
-   "now": 1154
+   "now": 1154.5
   },
   {
    "group": "ci",
