@@ -239,7 +239,7 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-22T09:17:41Z",
+ "generated": "2026-11-22T10:56:14Z",
  "metrics": [
   {
    "change30_pct": 19.7,
@@ -266,15 +266,15 @@
    "change30_pct": 24.6,
    "change7_pct": -12.4,
    "d30": 333,
-   "delta30": 82.0,
+   "delta30": 82,
    "delta7": -59.0,
    "group": "ci",
    "id": "pr_wait",
    "kind": "wait",
    "label": "PR CI wait",
-   "n_now": 200,
+   "n_now": 201,
    "n_prev": 144,
-   "now": 415.0,
+   "now": 415,
    "prev7": 474.0,
    "shown": true,
    "state": "flat",
@@ -326,10 +326,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 38.8,
+   "change30_pct": 34.5,
    "change7_pct": 4.2,
-   "d30": 45.6,
-   "delta30": 17.7,
+   "d30": 47.0,
+   "delta30": 16.2,
    "delta7": 2.6,
    "group": "local",
    "id": "bench.screens",
@@ -347,10 +347,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 50.5,
+   "change30_pct": 44.9,
    "change7_pct": -3.7,
-   "d30": 60.2,
-   "delta30": 30.4,
+   "d30": 62.5,
+   "delta30": 28.1,
    "delta7": -3.5,
    "group": "local",
    "id": "bench.ui",
@@ -368,10 +368,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 46.8,
+   "change30_pct": 41.7,
    "change7_pct": -1.8,
-   "d30": 140.7,
-   "delta30": 65.8,
+   "d30": 145.8,
+   "delta30": 60.7,
    "delta7": -3.8,
    "group": "local",
    "id": "bench.leaf",
@@ -823,10 +823,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 19.1,
+   "change30_pct": 28.6,
    "change7_pct": 0.6,
-   "d30": 0.7,
-   "delta30": 0.1,
+   "d30": 0.6,
+   "delta30": 0.2,
    "delta7": 0.0,
    "group": "local",
    "id": "bench.noop",
