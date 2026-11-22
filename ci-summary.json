@@ -239,12 +239,12 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-22T01:28:59Z",
+ "generated": "2026-11-22T01:30:51Z",
  "metrics": [
   {
    "change30_pct": 24.8,
    "change7_pct": -12.3,
-   "d30": 333,
+   "d30": 333.0,
    "delta30": 82.5,
    "delta7": -58.5,
    "group": "ci",
