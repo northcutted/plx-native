@@ -239,12 +239,33 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-22T00:20:41Z",
+ "generated": "2026-11-22T00:27:25Z",
  "metrics": [
+  {
+   "change30_pct": 17.0,
+   "change7_pct": 20.3,
+   "d30": 202.5,
+   "delta30": 34.5,
+   "delta7": 40.0,
+   "group": "ci",
+   "id": "sim|macOS simulator build + launch",
+   "kind": "job",
+   "label": "Simulator CI: macOS simulator build + launch",
+   "n_now": 58,
+   "n_prev": 63,
+   "now": 237.0,
+   "prev7": 197,
+   "shown": true,
+   "state": "worse",
+   "state30": "flat",
+   "threshold_abs": 30.0,
+   "threshold_pct": 20.0,
+   "unit": "s"
+  },
   {
    "change30_pct": 24.8,
    "change7_pct": -11.8,
-   "d30": 333.0,
+   "d30": 333,
    "delta30": 82.5,
    "delta7": -55.5,
    "group": "ci",
@@ -266,15 +287,15 @@
    "change30_pct": 23.9,
    "change7_pct": -8.5,
    "d30": 330,
-   "delta30": 79.0,
-   "delta7": -38.0,
+   "delta30": 79,
+   "delta7": -38,
    "group": "ci",
    "id": "push_wait",
    "kind": "wait",
    "label": "Wait after merge",
-   "n_now": 70,
+   "n_now": 71,
    "n_prev": 73,
-   "now": 409.0,
+   "now": 409,
    "prev7": 447,
    "shown": true,
    "state": "flat",
@@ -485,18 +506,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 35.8,
-   "change7_pct": 4.5,
+   "change30_pct": 35.2,
+   "change7_pct": 4.0,
    "d30": 257,
-   "delta30": 92,
-   "delta7": 15,
+   "delta30": 90.5,
+   "delta7": 13.5,
    "group": "ci",
    "id": "sim|Linux simulator build + launch",
    "kind": "job",
    "label": "Simulator CI: Linux simulator build + launch",
-   "n_now": 57,
+   "n_now": 58,
    "n_prev": 63,
-   "now": 349,
+   "now": 347.5,
    "prev7": 334,
    "shown": true,
    "state": "flat",
@@ -590,39 +611,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 15.6,
-   "change7_pct": 18.8,
-   "d30": 202.5,
-   "delta30": 31.5,
-   "delta7": 37,
-   "group": "ci",
-   "id": "sim|macOS simulator build + launch",
-   "kind": "job",
-   "label": "Simulator CI: macOS simulator build + launch",
-   "n_now": 57,
-   "n_prev": 63,
-   "now": 234,
-   "prev7": 197,
-   "shown": true,
-   "state": "flat",
-   "state30": "flat",
-   "threshold_abs": 30.0,
-   "threshold_pct": 20.0,
-   "unit": "s"
-  },
-  {
-   "change30_pct": 55.6,
-   "change7_pct": -0.9,
+   "change30_pct": 55.2,
+   "change7_pct": -1.1,
    "d30": 144,
-   "delta30": 80,
-   "delta7": -2,
+   "delta30": 79.5,
+   "delta7": -2.5,
    "group": "ci",
    "id": "sim|macOS tests against bundled FFmpeg and ASS",
    "kind": "job",
    "label": "Simulator CI: macOS tests against bundled FFmpeg and ASS",
-   "n_now": 57,
+   "n_now": 58,
    "n_prev": 63,
-   "now": 224,
+   "now": 223.5,
    "prev7": 226,
    "shown": true,
    "state": "flat",
@@ -742,15 +742,15 @@
    "change30_pct": 5.3,
    "change7_pct": 5.3,
    "d30": 19,
-   "delta30": 1,
-   "delta7": 1,
+   "delta30": 1.0,
+   "delta7": 1.0,
    "group": "ci",
    "id": "sim|Windows launcher syntax",
    "kind": "job",
    "label": "Simulator CI: Windows launcher syntax",
-   "n_now": 57,
+   "n_now": 58,
    "n_prev": 63,
-   "now": 20,
+   "now": 20.0,
    "prev7": 19,
    "shown": false,
    "state": "flat",
@@ -844,7 +844,69 @@
    "unit": "s"
   }
  ],
- "regressions": [],
+ "regressions": [
+  {
+   "change_pct": 20.3,
+   "commits": [
+    {
+     "pr": 1502,
+     "sha": "d50f63979",
+     "title": "URI: admit webOS 23 (firmware major 8), bracketed by 5 and 10"
+    },
+    {
+     "pr": 1503,
+     "sha": "9da891b1d",
+     "title": "Detail's seat ends at the viewer's first act there, and consent stays in memory under MemoryOnly"
+    },
+    {
+     "pr": 1501,
+     "sha": "3161a74c4",
+     "title": "The webOS and desktop platforms are crates of their own, above the application"
+    },
+    {
+     "pr": 1504,
+     "sha": "0a1edc61f",
+     "title": "os and the webOS crate gate on Linux where they mean the socket, and drop the arm half that meant webOS"
+    },
+    {
+     "pr": 1506,
+     "sha": "e8227890a",
+     "title": "A hosted platform's shared seams: host exports the exit gate and NO_MEDIA, eventlog taps, devtrig presets"
+    },
+    {
+     "pr": 1505,
+     "sha": "45b6846c0",
+     "title": "The Tizen platform crate exists, empty, and every list that names a platform crate names it"
+    },
+    {
+     "pr": 1507,
+     "sha": "7b26edf81",
+     "title": "A platform states where its files live: tv::Services gains the required Layout group"
+    },
+    {
+     "pr": 1509,
+     "sha": "94312bacd",
+     "title": "The Tizen platform crate: the hosted C ABI, an Ecore window with EGL, keys and the UDP log"
+    },
+    {
+     "pr": 1508,
+     "sha": "0072d39ec",
+     "title": "The Tizen build: mk/platform-tizen.mk, the .NET host, the .so and .tpk recipes, a compile-only CI job"
+    },
+    {
+     "pr": 1512,
+     "sha": "607f3cdfa",
+     "title": "Media's simulator-only tests run in every test pass; the clock-sink answer is the sink's own"
+    }
+   ],
+   "from": 197,
+   "id": "sim|macOS simulator build + launch",
+   "label": "Simulator CI: macOS simulator build + launch",
+   "since": "2026-11-21",
+   "threshold_pct": 20.0,
+   "to": 237.0
+  }
+ ],
  "schema": 2,
  "slowest_ci": [
   {
@@ -863,7 +925,7 @@
    "group": "ci",
    "id": "sim|Linux simulator build + launch",
    "label": "Simulator CI: Linux simulator build + launch",
-   "now": 349
+   "now": 347.5
   },
   {
    "group": "ci",
