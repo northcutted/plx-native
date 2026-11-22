@@ -239,7 +239,7 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-22T03:18:14Z",
+ "generated": "2026-11-22T03:28:08Z",
  "metrics": [
   {
    "change30_pct": 24.6,
@@ -251,9 +251,9 @@
    "id": "pr_wait",
    "kind": "wait",
    "label": "PR CI wait",
-   "n_now": 191,
+   "n_now": 192,
    "n_prev": 144,
-   "now": 415,
+   "now": 415.0,
    "prev7": 474.0,
    "shown": true,
    "state": "flat",
