@@ -239,7 +239,7 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-22T17:16:39Z",
+ "generated": "2026-11-22T17:28:11Z",
  "metrics": [
   {
    "change30_pct": 20.5,
@@ -263,10 +263,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 25.4,
+   "change30_pct": 25.2,
    "change7_pct": -11.5,
-   "d30": 331,
-   "delta30": 84.0,
+   "d30": 331.5,
+   "delta30": 83.5,
    "delta7": -54.0,
    "group": "ci",
    "id": "pr_wait",
@@ -464,18 +464,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 22.2,
+   "change30_pct": 22.1,
    "change7_pct": -0.5,
    "d30": 945,
-   "delta30": 209.5,
-   "delta7": -5.5,
+   "delta30": 209,
+   "delta7": -6,
    "group": "ci",
    "id": "nightly|ARM build + gates / build + verify",
    "kind": "job",
    "label": "Nightly: ARM build + gates / build + verify",
-   "n_now": 34,
+   "n_now": 35,
    "n_prev": 5,
-   "now": 1154.5,
+   "now": 1154,
    "prev7": 1160,
    "shown": true,
    "state": "flat",
@@ -545,6 +545,27 @@
    "state30": "flat",
    "threshold_abs": 20.0,
    "threshold_pct": 20.0,
+   "unit": "s"
+  },
+  {
+   "change30_pct": null,
+   "change7_pct": null,
+   "d30": null,
+   "delta30": null,
+   "delta7": null,
+   "group": "ci",
+   "id": "nightly|build Samsung nightly / Tizen package (armv7)",
+   "kind": "job",
+   "label": "Nightly: build Samsung nightly / Tizen package (armv7)",
+   "n_now": 1,
+   "n_prev": 0,
+   "now": 317,
+   "prev7": null,
+   "shown": true,
+   "state": "new",
+   "state30": "new",
+   "threshold_abs": 120.0,
+   "threshold_pct": 25.0,
    "unit": "s"
   },
   {
@@ -700,15 +721,15 @@
    "change30_pct": 57.9,
    "change7_pct": 25.0,
    "d30": 19,
-   "delta30": 11.0,
-   "delta7": 6.0,
+   "delta30": 11,
+   "delta7": 6,
    "group": "ci",
    "id": "nightly|publish nightly prerelease",
    "kind": "job",
    "label": "Nightly: publish nightly prerelease",
-   "n_now": 34,
+   "n_now": 35,
    "n_prev": 5,
-   "now": 30.0,
+   "now": 30,
    "prev7": 24,
    "shown": false,
    "state": "flat",
@@ -721,15 +742,15 @@
    "change30_pct": 58.8,
    "change7_pct": 8.0,
    "d30": 17,
-   "delta30": 10.0,
-   "delta7": 2.0,
+   "delta30": 10,
+   "delta7": 2,
    "group": "ci",
    "id": "nightly|plan today's nightly",
    "kind": "job",
    "label": "Nightly: plan today's nightly",
-   "n_now": 34,
+   "n_now": 35,
    "n_prev": 5,
-   "now": 27.0,
+   "now": 27,
    "prev7": 25,
    "shown": false,
    "state": "flat",
@@ -913,7 +934,7 @@
    "group": "ci",
    "id": "nightly|ARM build + gates / build + verify",
    "label": "Nightly: ARM build + gates / build + verify",
-   "now": 1154.5
+   "now": 1154
   },
   {
    "group": "ci",
@@ -935,9 +956,9 @@
   },
   {
    "group": "ci",
-   "id": "ci|host lint + type-checks",
-   "label": "CI: host lint + type-checks",
-   "now": 253.5
+   "id": "nightly|build Samsung nightly / Tizen package (armv7)",
+   "label": "Nightly: build Samsung nightly / Tizen package (armv7)",
+   "now": 317
   }
  ],
  "slowest_local": [
