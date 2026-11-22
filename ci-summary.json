@@ -239,21 +239,21 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-21T23:56:59Z",
+ "generated": "2026-11-22T00:04:55Z",
  "metrics": [
   {
-   "change30_pct": 24.3,
+   "change30_pct": 24.4,
    "change7_pct": -12.4,
-   "d30": 334,
-   "delta30": 81.0,
+   "d30": 333.5,
+   "delta30": 81.5,
    "delta7": -59.0,
    "group": "ci",
    "id": "pr_wait",
    "kind": "wait",
    "label": "PR CI wait",
-   "n_now": 182,
+   "n_now": 183,
    "n_prev": 148,
-   "now": 415.0,
+   "now": 415,
    "prev7": 474.0,
    "shown": true,
    "state": "flat",
@@ -263,10 +263,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 23.9,
+   "change30_pct": 23.8,
    "change7_pct": -8.5,
-   "d30": 330,
-   "delta30": 79.0,
+   "d30": 330.5,
+   "delta30": 78.5,
    "delta7": -38.0,
    "group": "ci",
    "id": "push_wait",
@@ -485,10 +485,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 35.8,
+   "change30_pct": 35.3,
    "change7_pct": 4.5,
-   "d30": 257,
-   "delta30": 92,
+   "d30": 258.0,
+   "delta30": 91.0,
    "delta7": 15,
    "group": "ci",
    "id": "sim|Linux simulator build + launch",
@@ -590,10 +590,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 16.7,
+   "change30_pct": 16.4,
    "change7_pct": 18.8,
-   "d30": 200.5,
-   "delta30": 33.5,
+   "d30": 201,
+   "delta30": 33,
    "delta7": 37,
    "group": "ci",
    "id": "sim|macOS simulator build + launch",
@@ -611,10 +611,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 53.4,
+   "change30_pct": 54.5,
    "change7_pct": -0.9,
-   "d30": 146,
-   "delta30": 78,
+   "d30": 145.0,
+   "delta30": 79.0,
    "delta7": -2,
    "group": "ci",
    "id": "sim|macOS tests against bundled FFmpeg and ASS",
@@ -739,10 +739,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 5.3,
+   "change30_pct": 8.1,
    "change7_pct": 5.3,
-   "d30": 19,
-   "delta30": 1,
+   "d30": 18.5,
+   "delta30": 1.5,
    "delta7": 1,
    "group": "ci",
    "id": "sim|Windows launcher syntax",
