@@ -1,4 +1,4 @@
-{"updated":"2026-11-23T02:24:06Z",
+{"updated":"2026-11-23T10:38:02Z",
 "ci":[
 {"id":32947396966,"at":"2026-08-26T08:22:12Z","sha":"5a8ef2efb","title":"playback: risk-aware adaptive controller, model read-out and shaped-link test tier","jobs":{"cross-build (armv7) + artifact assertions":99,"host checks (NOT a device gate)":125},"pr":null,"conclusion":"success","attempt":1},
 {"id":33028554322,"at":"2026-08-27T00:57:51Z","sha":"af2df6898","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","jobs":{"host checks (NOT a device gate)":108,"cross-build (armv7) + artifact assertions":96},"pr":null,"conclusion":"success","attempt":1},
@@ -5744,7 +5744,8 @@
 {"id":45024298773,"at":"2026-11-22T12:49:50Z","sha":"a447c6552","title":"The simulator's Cargo feature is named `sim` (W8c-4)","pr":1518,"conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":20,"Linux simulator build + launch":322,"macOS simulator build + launch":290,"macOS tests against bundled FFmpeg and ASS":254}},
 {"id":45047666824,"at":"2026-11-22T17:07:39Z","sha":"05aaf0099","title":"Re-seal source certificates for the Samsung platform changes","pr":1519,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Linux simulator build + launch":389,"Windows launcher syntax":20,"macOS simulator build + launch":511,"macOS tests against bundled FFmpeg and ASS":406}},
 {"id":45087206799,"at":"2026-11-23T00:10:31Z","sha":"bae42ccd9","title":"Build Samsung SUPER ALPHA packages in the shared nightly","pr":1519,"conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":19,"macOS simulator build + launch":618,"macOS tests against bundled FFmpeg and ASS":446,"Linux simulator build + launch":495}},
-{"id":45083504283,"at":"2026-11-23T02:18:37Z","sha":"c20267b30","title":"Merge branch 'main' into croatian-translation","pr":1476,"event":"pull_request","conclusion":"failure","attempt":2,"jobs":{"Windows launcher syntax":16},"wall":10268,"failed":["Linux simulator build + launch","macOS simulator build + launch","macOS tests against bundled FFmpeg and ASS"]}
+{"id":45083504283,"at":"2026-11-23T02:18:37Z","sha":"c20267b30","title":"Merge branch 'main' into croatian-translation","pr":1476,"event":"pull_request","conclusion":"failure","attempt":2,"jobs":{"Windows launcher syntax":16},"wall":10268,"failed":["Linux simulator build + launch","macOS simulator build + launch","macOS tests against bundled FFmpeg and ASS"]},
+{"id":45157461053,"at":"2026-11-23T10:35:18Z","sha":"9774bc98f","title":"Playback: one reader for the video-copy rule","pr":1472,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"Windows launcher syntax":22},"failed":["Linux simulator build + launch","macOS simulator build + launch","macOS tests against bundled FFmpeg and ASS"]}
 ],
 "nightly":[
 {"id":35412511191,"at":"2026-09-19T01:23:39Z","sha":"6d0599e36","title":"ci: nightly runs as a dry run on the pull requests that change it","pr":140,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"plan today's nightly":10},"failed":["ARM build + gates / build + verify"]},
