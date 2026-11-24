@@ -1,6 +1,20 @@
 {
  "flaky": [
   {
+   "count": 2,
+   "first_seen": "2026-11-20T08:40:05Z",
+   "job": "host unit tests (default features)",
+   "last": {
+    "pr": 1536,
+    "run": 45390617442,
+    "sha": "8306ae6dd"
+   },
+   "last_seen": "2026-11-24T12:15:42Z",
+   "new": false,
+   "status": "Active",
+   "test": "plxnative_modules::app::bridge::account_menu_route_tests::closing_the_account_menu_with_back_raises_no_page_damage"
+  },
+  {
    "count": 1,
    "first_seen": "2026-11-21T12:46:20Z",
    "job": "host unit tests (hostsim)",
@@ -111,20 +125,6 @@
    "new": false,
    "status": "Active",
    "test": "plxnative_modules::app::bridge::deeplink_route_tests::a_play_landing_waits_for_an_abandoning_preview"
-  },
-  {
-   "count": 1,
-   "first_seen": "2026-11-20T08:40:05Z",
-   "job": "host unit tests (default features)",
-   "last": {
-    "pr": 1483,
-    "run": 44703127807,
-    "sha": "6d6f1de6b"
-   },
-   "last_seen": "2026-11-20T08:40:05Z",
-   "new": false,
-   "status": "Active",
-   "test": "plxnative_modules::app::bridge::account_menu_route_tests::closing_the_account_menu_with_back_raises_no_page_damage"
   },
   {
    "count": 3,
@@ -239,7 +239,7 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-24T12:15:52Z",
+ "generated": "2026-11-24T12:23:35Z",
  "metrics": [
   {
    "change30_pct": 27.4,
@@ -272,9 +272,9 @@
    "id": "pr_wait",
    "kind": "wait",
    "label": "PR CI wait",
-   "n_now": 177,
+   "n_now": 178,
    "n_prev": 128,
-   "now": 418,
+   "now": 418.0,
    "prev7": 450.5,
    "shown": true,
    "state": "flat",
