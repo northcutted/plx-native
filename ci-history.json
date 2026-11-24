@@ -1,4 +1,4 @@
-{"updated":"2026-11-24T23:12:48Z",
+{"updated":"2026-11-24T23:20:41Z",
 "ci":[
 {"id":32947396966,"at":"2026-08-26T08:22:12Z","sha":"5a8ef2efb","title":"playback: risk-aware adaptive controller, model read-out and shaped-link test tier","jobs":{"cross-build (armv7) + artifact assertions":99,"host checks (NOT a device gate)":125},"pr":null,"conclusion":"success","attempt":1},
 {"id":33028554322,"at":"2026-08-27T00:57:51Z","sha":"af2df6898","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","jobs":{"host checks (NOT a device gate)":108,"cross-build (armv7) + artifact assertions":96},"pr":null,"conclusion":"success","attempt":1},
@@ -5790,7 +5790,8 @@
 {"id":45463820550,"at":"2026-11-24T18:51:59Z","sha":"622fac3b2","title":"Merge commit '02eee36191af0f8098ba91dcc4e865b3b11432a6' into HEAD","pr":1476,"event":"pull_request","conclusion":"success","attempt":2,"jobs":{"Linux simulator build + launch":365,"macOS simulator build + launch":299,"macOS tests against bundled FFmpeg and ASS":275,"Windows launcher syntax":23},"wall":765},
 {"id":45466267113,"at":"2026-11-24T19:04:12Z","sha":"cc14d0af1","title":"i18n: Add Croatian translation","pr":1476,"conclusion":"failure","attempt":1,"jobs":{"Linux simulator build + launch":365,"Windows launcher syntax":22,"macOS simulator build + launch":284}},
 {"id":45504176480,"at":"2026-11-24T22:47:25Z","sha":"138a5fd0b","title":"Use the captured frame clock for control outcomes","pr":1387,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":19,"macOS simulator build + launch":301,"macOS tests against bundled FFmpeg and ASS":159,"Linux simulator build + launch":351}},
-{"id":45506789662,"at":"2026-11-24T23:04:51Z","sha":"280cd4312","title":"Document the acknowledged seek result","pr":1387,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":23,"macOS simulator build + launch":347,"macOS tests against bundled FFmpeg and ASS":246,"Linux simulator build + launch":302}}
+{"id":45506789662,"at":"2026-11-24T23:04:51Z","sha":"280cd4312","title":"Document the acknowledged seek result","pr":1387,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":23,"macOS simulator build + launch":347,"macOS tests against bundled FFmpeg and ASS":246,"Linux simulator build + launch":302}},
+{"id":45508247121,"at":"2026-11-24T23:14:29Z","sha":"04d9075b6","title":"Add a typed Unix socket for debug playback control","pr":1387,"conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":17,"Linux simulator build + launch":360,"macOS simulator build + launch":357,"macOS tests against bundled FFmpeg and ASS":175}}
 ],
 "nightly":[
 {"id":35412511191,"at":"2026-09-19T01:23:39Z","sha":"6d0599e36","title":"ci: nightly runs as a dry run on the pull requests that change it","pr":140,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"plan today's nightly":10},"failed":["ARM build + gates / build + verify"]},
