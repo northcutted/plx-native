@@ -239,21 +239,21 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-25T00:52:38Z",
+ "generated": "2026-11-25T00:53:38Z",
  "metrics": [
   {
-   "change30_pct": 37.8,
-   "change7_pct": 36.7,
+   "change30_pct": 37.0,
+   "change7_pct": 35.9,
    "d30": 196,
-   "delta30": 74,
-   "delta7": 72.5,
+   "delta30": 72.5,
+   "delta7": 71.0,
    "group": "ci",
    "id": "sim|macOS simulator build + launch",
    "kind": "job",
    "label": "Simulator CI: macOS simulator build + launch",
-   "n_now": 53,
+   "n_now": 54,
    "n_prev": 48,
-   "now": 270,
+   "now": 268.5,
    "prev7": 197.5,
    "shown": true,
    "state": "worse",
@@ -284,18 +284,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 23.1,
-   "change7_pct": -1.1,
+   "change30_pct": 23.0,
+   "change7_pct": -1.2,
    "d30": 335,
-   "delta30": 77.5,
-   "delta7": -4.5,
+   "delta30": 77,
+   "delta7": -5.0,
    "group": "ci",
    "id": "push_wait",
    "kind": "wait",
    "label": "Wait after merge",
-   "n_now": 62,
+   "n_now": 63,
    "n_prev": 64,
-   "now": 412.5,
+   "now": 412,
    "prev7": 417.0,
    "shown": true,
    "state": "flat",
@@ -527,18 +527,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 32.8,
-   "change7_pct": 2.5,
+   "change30_pct": 32.3,
+   "change7_pct": 2.0,
    "d30": 265.0,
-   "delta30": 87.0,
-   "delta7": 8.5,
+   "delta30": 85.5,
+   "delta7": 7.0,
    "group": "ci",
    "id": "sim|Linux simulator build + launch",
    "kind": "job",
    "label": "Simulator CI: Linux simulator build + launch",
-   "n_now": 53,
+   "n_now": 54,
    "n_prev": 48,
-   "now": 352,
+   "now": 350.5,
    "prev7": 343.5,
    "shown": true,
    "state": "flat",
@@ -662,9 +662,9 @@
    "id": "sim|macOS tests against bundled FFmpeg and ASS",
    "kind": "job",
    "label": "Simulator CI: macOS tests against bundled FFmpeg and ASS",
-   "n_now": 53,
+   "n_now": 54,
    "n_prev": 48,
-   "now": 221,
+   "now": 221.0,
    "prev7": 220.5,
    "shown": true,
    "state": "flat",
@@ -769,9 +769,9 @@
    "id": "sim|Windows launcher syntax",
    "kind": "job",
    "label": "Simulator CI: Windows launcher syntax",
-   "n_now": 53,
+   "n_now": 54,
    "n_prev": 48,
-   "now": 19,
+   "now": 19.0,
    "prev7": 20.0,
    "shown": false,
    "state": "flat",
@@ -867,18 +867,8 @@
  ],
  "regressions": [
   {
-   "change_pct": 36.7,
+   "change_pct": 35.9,
    "commits": [
-    {
-     "pr": 1519,
-     "sha": "bae42ccd9",
-     "title": "Build Samsung SUPER ALPHA packages in the shared nightly"
-    },
-    {
-     "pr": 1472,
-     "sha": "fd785c19a",
-     "title": "Playback: Dolby Vision found in the RPUs of a stream with no record is declared"
-    },
     {
      "pr": 1529,
      "sha": "ba42995fb",
@@ -918,14 +908,19 @@
      "pr": 1422,
      "sha": "d302bef86",
      "title": "Warn owners about affected Plex Media Server builds"
+    },
+    {
+     "pr": 1418,
+     "sha": "85234ae11",
+     "title": "Add a Watchlist action to filmography credits"
     }
    ],
    "from": 197.5,
    "id": "sim|macOS simulator build + launch",
    "label": "Simulator CI: macOS simulator build + launch",
-   "since": "2026-11-22",
+   "since": "2026-11-25",
    "threshold_pct": 20.0,
-   "to": 270
+   "to": 268.5
   }
  ],
  "schema": 2,
@@ -952,7 +947,7 @@
    "group": "ci",
    "id": "sim|Linux simulator build + launch",
    "label": "Simulator CI: Linux simulator build + launch",
-   "now": 352
+   "now": 350.5
   },
   {
    "group": "ci",
