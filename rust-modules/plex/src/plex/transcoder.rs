@@ -299,7 +299,9 @@ fn profile_for_delivery(caps: &plx_os::devcaps::Caps, delivery: TranscodeDeliver
     );
     let audio_limits = caps.audio_channels.iter()
         .filter(|(codec, _)| caps.audio_has(codec))
-        .map(|(codec, channels)| audio_limit(profile_codec_name(codec), "audio.channels", *channels))
+        .map(|(codec, channels)| {
+            audio_limit(profile_codec_name(codec), "audio.channels", plx_os::devcaps::profile_audio_channels(codec, *channels))
+        })
         .collect::<String>();
     // The rate ceiling (`devcaps::AUDIO_RATE_CEILING`, #951) goes on every codec of the transcode
     // target list and every lossy app-decoded row that `devcaps::audio_rate_bounded` names, the same
@@ -1393,9 +1395,25 @@ mod tests {
         // transcode target and the channel limitation's scopeName. `dts` appears nowhere.
         assert!(list_of(&profile, "audioCodec=").contains(&"dca".into()));
         assert!(list_of(target_of(&profile), "audioCodec=").contains(&"dca".into()));
-        assert!(profile.contains("scope=videoAudioCodec&scopeName=dca&type=upperBound&name=audio.channels&value=6&replace=true"));
+        assert!(profile.contains("scope=videoAudioCodec&scopeName=dca&type=upperBound&name=audio.channels&value=8&replace=true"));
         assert!(!profile.contains("dts"), "{profile}");
         assert!(!profile.contains("truehd"));
+    }
+
+    /// #1537: a DTS row that holds the 5.1 core lets PMS direct-play a 7.1 DTS-HD MA (the pipeline
+    /// feeds its core), so the profile's `dca` bound is the widest DTS-HD layout, not the row's 6. A
+    /// row narrower than the core (a learned stereo ceiling) is stated as it is.
+    #[test]
+    fn a_dts_row_that_holds_the_core_lets_the_server_direct_play_7_1_dts_hd() {
+        let bound = |n: u32| format!("scope=videoAudioCodec&scopeName=dca&type=upperBound&name=audio.channels&value={n}&replace=true");
+        let mut caps = Caps::assumed();
+        caps.audio.push_str(",dts");
+        caps.audio_channels.insert("dts".into(), 6);
+        let profile = super::profile_for(&caps);
+        assert!(profile.contains(&bound(8)) && !profile.contains(&bound(6)), "{profile}");
+        caps.audio_channels.insert("dts".into(), 2);
+        let profile = super::profile_for(&caps);
+        assert!(profile.contains(&bound(2)) && !profile.contains(&bound(8)), "{profile}");
     }
 
     /// FLAC is decoded in the app and fed as PCM: offered for direct play (and Force) on a set

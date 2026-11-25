@@ -990,12 +990,17 @@ fn a_selected_dca_track_is_picked_when_the_table_has_a_dts_row() {
 }
 
 /// Auto and Forced decide through the same canonicaliser, and Forced's DTS needs the table row
-/// but not the ceiling (7.1 DTS-HD MA: Auto converts, Forced feeds the core).
+/// but not the ceiling. A 7.1 DTS-HD MA plays as its 5.1 core in BOTH modes on a set whose DTS row
+/// holds the core (#1537: a B9 with `DTS/6` played the core under Force Direct Play while Auto had the
+/// server convert it to 5.1 AAC); a row narrower than the core still sends it to the server.
 #[test]
 fn auto_and_forced_agree_on_the_dca_spelling() {
     let caps = dts_row_caps();
     assert!(audio_direct_plays_with(&caps, DirectPlayMode::Auto, "dca", 6, 0));
-    assert!(!audio_direct_plays_with(&caps, DirectPlayMode::Auto, "dca", 8, 0));
+    assert!(audio_direct_plays_with(&caps, DirectPlayMode::Auto, "dca", 8, 0), "#1537: Auto feeds the 5.1 core");
+    let stereo_row = plx_os::devcaps::Caps { audio_channels: [("dts".into(), 2)].into(), ..dts_row_caps() };
+    assert!(!audio_direct_plays_with(&stereo_row, DirectPlayMode::Auto, "dca", 8, 0), "a 2ch row cannot take the core");
+    assert!(!audio_direct_plays_with(&stereo_row, DirectPlayMode::Auto, "dca", 6, 0));
     assert!(audio_direct_plays_with(&caps, DirectPlayMode::Forced, "dca", 6, 0));
     assert!(audio_direct_plays_with(&caps, DirectPlayMode::Forced, "dca", 8, 0));
     assert!(audio_direct_plays_with(&caps, DirectPlayMode::Forced, "DTS", 8, 0));
