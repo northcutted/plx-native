@@ -1,4 +1,4 @@
-{"updated":"2026-11-25T00:30:06Z",
+{"updated":"2026-11-25T00:35:18Z",
 "ci":[
 {"id":33028554322,"at":"2026-08-27T00:57:51Z","sha":"af2df6898","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","jobs":{"host checks (NOT a device gate)":108,"cross-build (armv7) + artifact assertions":96},"pr":null,"conclusion":"success","attempt":1},
 {"id":33181037225,"at":"2026-08-28T14:36:41Z","sha":"3d06fbe09","title":"lab: add remote command bridge for cloud TVs","jobs":{"cross-build (armv7) + artifact assertions":108,"host checks (NOT a device gate)":129},"pr":null,"conclusion":"success","attempt":1},
@@ -5796,7 +5796,8 @@
 {"id":45508247121,"at":"2026-11-24T23:14:29Z","sha":"04d9075b6","title":"Add a typed Unix socket for debug playback control","pr":1387,"conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":17,"Linux simulator build + launch":360,"macOS simulator build + launch":357,"macOS tests against bundled FFmpeg and ASS":175}},
 {"id":45514938235,"at":"2026-11-25T00:02:50Z","sha":"0aa408037","title":"Add Croatian text for the server security warning","pr":1422,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":21,"Linux simulator build + launch":382,"macOS simulator build + launch":265,"macOS tests against bundled FFmpeg and ASS":261}},
 {"id":45516340096,"at":"2026-11-25T00:13:05Z","sha":"d302bef86","title":"Warn owners about affected Plex Media Server builds","pr":1422,"conclusion":"success","attempt":1,"jobs":{"macOS tests against bundled FFmpeg and ASS":176,"macOS simulator build + launch":370,"Windows launcher syntax":21,"Linux simulator build + launch":385}},
-{"id":45517366871,"at":"2026-11-25T00:23:25Z","sha":"d0cf0f297","title":"Describe how opaque surfaces receive the Watchlist menu dim","pr":1418,"event":"pull_request","conclusion":"success","attempt":2,"jobs":{"macOS simulator build + launch":270,"Linux simulator build + launch":378,"Windows launcher syntax":21,"macOS tests against bundled FFmpeg and ASS":215},"wall":536}
+{"id":45517366871,"at":"2026-11-25T00:23:25Z","sha":"d0cf0f297","title":"Describe how opaque surfaces receive the Watchlist menu dim","pr":1418,"event":"pull_request","conclusion":"success","attempt":2,"jobs":{"macOS simulator build + launch":270,"Linux simulator build + launch":378,"Windows launcher syntax":21,"macOS tests against bundled FFmpeg and ASS":215},"wall":536},
+{"id":45518451782,"at":"2026-11-25T00:29:52Z","sha":"0df0ccf83","title":"Keep the neutral modal underlay with its owner","pr":1418,"event":"pull_request","conclusion":"success","attempt":2,"jobs":{"macOS tests against bundled FFmpeg and ASS":295,"Linux simulator build + launch":312,"Windows launcher syntax":19,"macOS simulator build + launch":271},"wall":352}
 ],
 "nightly":[
 {"id":35412511191,"at":"2026-09-19T01:23:39Z","sha":"6d0599e36","title":"ci: nightly runs as a dry run on the pull requests that change it","pr":140,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"plan today's nightly":10},"failed":["ARM build + gates / build + verify"]},
