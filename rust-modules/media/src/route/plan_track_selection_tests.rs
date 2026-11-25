@@ -998,6 +998,11 @@ fn auto_and_forced_agree_on_the_dca_spelling() {
     let caps = dts_row_caps();
     assert!(audio_direct_plays_with(&caps, DirectPlayMode::Auto, "dca", 6, 0));
     assert!(audio_direct_plays_with(&caps, DirectPlayMode::Auto, "dca", 8, 0), "#1537: Auto feeds the 5.1 core");
+    // The URI backend hands the original to the set's own player, which reads the stream whole:
+    // Auto keeps a 7.1 DTS-HD MA from it (the play stays in Standard, which feeds the core).
+    assert!(!uri_original_audio_plays(&caps, DirectPlayMode::Auto, "dca", 8, 0), "the TV's player gets the 7.1 stream");
+    assert!(uri_original_audio_plays(&caps, DirectPlayMode::Auto, "dca", 6, 0));
+    assert!(uri_original_audio_plays(&caps, DirectPlayMode::Forced, "dca", 8, 0), "Force applies no ceiling, as before");
     let stereo_row = plx_os::devcaps::Caps { audio_channels: [("dts".into(), 2)].into(), ..dts_row_caps() };
     assert!(!audio_direct_plays_with(&stereo_row, DirectPlayMode::Auto, "dca", 8, 0), "a 2ch row cannot take the core");
     assert!(!audio_direct_plays_with(&stereo_row, DirectPlayMode::Auto, "dca", 6, 0));

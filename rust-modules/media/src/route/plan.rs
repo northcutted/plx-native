@@ -2100,14 +2100,14 @@ pub(super) fn build_stream(off: &plx_base::task::OffFrame, rk: &str, part: &str,
                 let source_decodable = video_direct_plays(vcodec, width, height,
                     dv_decision.presentation, &env.caps);
                 // The track the URI source would play is the intended one, with no sibling stand-in, and
-                // only the set's own decoder reaches it: the app's lossy decode is Standard's alone.
+                // only the set's own decoder reaches it ([`uri_original_audio_plays`]).
                 let audio_plays = source_audio.as_ref().is_some_and(|(position, codec, _)| {
                     match usize::try_from(*position).ok().and_then(|i| tracks.get(i)) {
-                        Some(track) => audio_natively_plays_with(&env.caps, env.direct_play_mode,
+                        Some(track) => uri_original_audio_plays(&env.caps, env.direct_play_mode,
                             &track.codec, track.channels, track.sampling_rate),
                         // No track list: the Media-level codec stands in, as the direct-play decision
                         // reads it, and no codec at all is a file with no audio.
-                        None => codec.is_empty() || audio_natively_plays_with(&env.caps,
+                        None => codec.is_empty() || uri_original_audio_plays(&env.caps,
                             env.direct_play_mode, codec, 0, 0),
                     }
                 });
@@ -3857,6 +3857,19 @@ pub(super) fn audio_natively_plays_with(
     sample_rate: i64,
 ) -> bool {
     caps.native_audio_track(codec, channels, sample_rate, mode == DirectPlayMode::Forced)
+}
+
+/// Standard's audio verdict on an original the URI backend would hand to the set's own player: the
+/// set's decoder alone (the app's lossy decode is Standard's), and the stream WHOLE. Nothing strips a
+/// DTS-HD extension on that path, so Auto bounds a DTS track by its own layout
+/// ([`plx_os::devcaps::Caps::audio_layout_supports`]), not by the core the app's demuxer feeds
+/// (#1537); Force Direct Play applies no table ceiling on either path.
+pub(super) fn uri_original_audio_plays(
+    caps: &plx_os::devcaps::Caps, mode: DirectPlayMode, codec: &str, channels: i64,
+    sample_rate: i64,
+) -> bool {
+    audio_natively_plays_with(caps, mode, codec, channels, sample_rate)
+        && (mode == DirectPlayMode::Forced || caps.audio_layout_supports(codec, channels))
 }
 
 #[cfg(test)]

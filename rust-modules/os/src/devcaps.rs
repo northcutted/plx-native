@@ -228,9 +228,9 @@ pub fn app_decoded_by_ffmpeg_name(name: &str) -> Option<&'static AppDecoded> {
 /// it does under Force Direct Play (#1537, an LG B9 on webOS 4.10.2).
 pub const DTS_CORE_CHANNELS: u32 = 6;
 
-/// The widest DTS-family layout a file carries (7.1 DTS-HD MA). The profile states a DTS row that holds
-/// the core ([`DTS_CORE_CHANNELS`]) as this bound ([`profile_audio_channels`]), so PMS direct-plays the
-/// tracks the local gate admits instead of converting them.
+/// The widest DTS-family layout a file carries (7.1 DTS-HD MA). The direct-play ask's profile states a
+/// DTS row that holds the core ([`DTS_CORE_CHANNELS`]) as this bound ([`profile_audio_channels`]), so
+/// PMS direct-plays the tracks the local gate admits instead of converting them.
 pub const DTS_HD_CHANNELS: u32 = 8;
 
 /// The `audio.channels` bound the PMS profile states for a codec whose row allows `limit`: the row as it
@@ -940,16 +940,29 @@ impl Caps {
         self.audio.split(',').any(|c| c == id)
     }
 
-    /// Local counterpart of the profile's codec-scoped audio.channels limitations.
+    /// Local counterpart of the profile's codec-scoped audio.channels limitations, for a track the
+    /// app's own demuxer feeds: a DTS track arrives as its core, so the row bounds the core's width
+    /// ([`DTS_CORE_CHANNELS`], #1537). The TV's own player gets the whole stream instead; it is judged
+    /// by [`Caps::audio_layout_supports`].
     pub fn audio_supports(&self, codec: &str, channels: i64) -> bool {
+        self.supports_channels(codec, channels, true)
+    }
+
+    /// [`Caps::audio_supports`] against the track's own layout, for a source the set's player reads
+    /// whole (the URI backend's original): nothing strips a DTS-HD extension there, and no set has
+    /// been seen playing a 7.1 DTS-HD MA as its core through it, so the row bounds the layout.
+    pub fn audio_layout_supports(&self, codec: &str, channels: i64) -> bool {
+        self.supports_channels(codec, channels, false)
+    }
+
+    fn supports_channels(&self, codec: &str, channels: i64, dts_fed_as_core: bool) -> bool {
         let id = audio_codec_id(codec);
         if !self.audio_has(&id) {
             return false;
         }
         // DTS and the PCM path both need a stated channel count: an unknown one is not admitted.
         let needs_count = id == "dts" || is_pcm_codec(&id);
-        // A DTS track is fed as its core, so the row bounds the core's width ([`DTS_CORE_CHANNELS`]).
-        let channels = if id == "dts" { channels.min(i64::from(DTS_CORE_CHANNELS)) } else { channels };
+        let channels = if id == "dts" && dts_fed_as_core { channels.min(i64::from(DTS_CORE_CHANNELS)) } else { channels };
         match self.audio_channels.get(id.as_ref()) {
             Some(&limit) => (channels > 0 || !needs_count) && channels <= i64::from(limit),
             None => !needs_count,
@@ -2567,6 +2580,8 @@ mod tests {
         assert_eq!(profile_audio_channels("dca", 6), DTS_HD_CHANNELS);
         assert_eq!(profile_audio_channels("dts", 2), 2);
         assert_eq!(profile_audio_channels("aac", 6), 6);
+        assert!(!caps.audio_layout_supports("dca", 8), "the set's own player gets the whole 7.1 stream");
+        assert!(caps.audio_layout_supports("dca", 6));
         assert!(!Caps::assumed().forced_feeds_audio("dca"));
         assert!(!Caps::assumed().forced_feeds_audio("dts"));
         let no_row = parse(&REAL.replace("DTS", "WMA")).unwrap();
