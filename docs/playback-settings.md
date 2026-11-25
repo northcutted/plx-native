@@ -158,9 +158,12 @@ A muted device run proves pipeline behavior, not audible output.
 Auto holds a DTS track's CORE to the measured DTS channel ceiling: the pipeline is fed the core
 alone (the demuxer strips an HD or ES extension), and a DTS core is 5.1 at most, so on a set whose
 DTS row allows six channels a 7.1 DTS-HD MA plays as its 5.1 core in Auto as it does under Force
-(issue #1537, an LG B9 on webOS 4.10.2; `devcaps::DTS_CORE_CHANNELS`), and the profile states that
-row's `dca` bound as 8 (`devcaps::profile_audio_channels`) so the server agrees. A row narrower than
-the core (a learned stereo ceiling), or no usable channel count, still converts on the server. PMS reports DTS as
+(issue #1537, an LG B9 on webOS 4.10.2; `devcaps::DTS_CORE_CHANNELS`), and the direct-play ask's
+profile states that row's `dca` bound as 8 (`devcaps::profile_audio_channels`) so the server agrees.
+The TV's own player reads a stream whole, so the Experimental engine's original and an encoder
+session's profile keep the row's bound on the track's own layout (`Caps::audio_layout_supports`):
+a 7.1 DTS-HD MA stays in Standard there. A row narrower than the core (a learned stereo ceiling), or
+no usable channel count, still converts on the server. PMS reports DTS as
 `dca`; Auto and Force treat it as `dts`, and the profile sends `dca`. Force skips the channel
 ceiling for DTS and, where the device table lists no DTS decoder (webOS 10+) or the install learned that
 the set's decoder refuses a layout, decodes the DTS core of a track with one or two channels in the app instead
