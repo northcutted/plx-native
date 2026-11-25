@@ -1119,11 +1119,14 @@ pub struct FailureContext {
 ///   is picked — so [`ChangeQuality`](FailureAction::ChangeQuality) is never offered there, and
 ///   [`PlayAutomatically`](FailureAction::PlayAutomatically) is, because it is the one change that
 ///   re-enables the fallback.
-/// * Under Direct Play **Disabled** every rung asks the server to convert, so a refusal (or any
-///   failure a plain retry cannot cure) is answered by the same one change, which sets the
-///   preference back to Auto and resolves the item again: [`PlayAutomatically`](FailureAction::PlayAutomatically)
-///   is offered there too, Live TV included (a channel has no rung to pick, so it was *Back* alone), and
-///   leads the row as it does under Force. A rung stays offered where a backend can carry one.
+/// * Under Direct Play **Disabled** every rung asks the server to convert, so a REFUSAL (a
+///   non-transient kind: the server's decision, the pipeline, no transcode target) is answered by
+///   the one change that sets the preference back to Auto and resolves the item again:
+///   [`PlayAutomatically`](FailureAction::PlayAutomatically) is offered there too, Live TV included
+///   (a channel has no rung to pick, so it was *Back* alone), and leads the row as it does under
+///   Force. A TRANSIENT failure (a stall, a timeout) keeps [`TryAgain`](FailureAction::TryAgain) and the rung:
+///   the action persists the viewer's saved setting and focus seats on the first one, so a network
+///   blip must not put it under a reflexive OK.
 /// * A deterministic refusal (the server's `/decision`, the TV refusing the Load declaration) gets
 ///   no [`TryAgain`](FailureAction::TryAgain): the same request gets the same answer. A different
 ///   rung is a different request, so the ladder stays where a transcode or a direct play could
@@ -1166,8 +1169,9 @@ pub fn failure_actions(kind: FailureKind, cx: FailureContext) -> Vec<FailureActi
         _ => {
             if cx.can_retry {
                 // Disabled is a setting the viewer can lift: the one change that re-enables the
-                // direct path, and the only one a Live TV channel (no rung) has.
-                if cx.direct_play_disabled {
+                // direct path, and the only one a Live TV channel (no rung) has. Offered for a
+                // refusal only: it persists Auto, which a transient stall gives no reason for.
+                if cx.direct_play_disabled && !transient {
                     v.push(A::PlayAutomatically);
                 }
                 if transient {
@@ -3349,6 +3353,9 @@ mod tests {
                 assert!(!row.contains(&A::ChangeQuality), "Force overrides every rung — {at}");
             } else if !cx.direct_play_disabled {
                 assert!(!row.contains(&A::PlayAutomatically), "nothing to switch off — {at}");
+            } else if matches!(kind, K::PlaybackInterrupted | K::LoadTimeout | K::ReleaseTimeout
+                | K::ResolveFailed | K::MediaSource | K::Unspecified) {
+                assert!(!row.contains(&A::PlayAutomatically), "a stall must not offer the saved setting — {at}");
             }
             if !cx.can_retry {
                 for a in [A::TryAgain, A::ChangeQuality, A::PlayAutomatically] {
@@ -3417,6 +3424,12 @@ mod tests {
         assert_eq!(failure_actions(FailureKind::DecisionRefused, FailureContext { can_retry: false, ..cx }), [A::Back]);
         assert!(!failure_actions(FailureKind::TunersBusy, cx).contains(&A::PlayAutomatically));
         assert_eq!(failure_actions(FailureKind::NoVideoTrack, cx), [A::Back]);
+        // A transient failure under Disabled is a stall, not a refusal: the saved setting is not
+        // offered for flipping, and the row is what it was.
+        for kind in [FailureKind::PlaybackInterrupted, FailureKind::LoadTimeout, FailureKind::ReleaseTimeout,
+            FailureKind::ResolveFailed, FailureKind::MediaSource, FailureKind::Unspecified] {
+            assert_eq!(failure_actions(kind, cx), [A::TryAgain, A::ChangeQuality, A::Back], "{kind:?}");
+        }
 
         // Under Auto there is nothing to switch off.
         crate::route::set_direct_play_mode_for_test(&mut ps, DirectPlayMode::Auto);

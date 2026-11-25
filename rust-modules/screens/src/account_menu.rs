@@ -685,6 +685,7 @@ impl AuthLike for MenuHost {
             persistence_warning: None, incident: None, link_trouble: false,
             discovery_retry: None, plaintext: None, account: None,
             switch_refused, readout_back_resumes: false, picker: plx_session::auth::Picker::Boot,
+            dev_session: false,
         }
     }
 

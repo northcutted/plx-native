@@ -718,7 +718,8 @@ struct Report {
     /// The last `(id, revision)` this screen resolved, so a pending offer is resolved once rather
     /// than on every frame the owner has yet to answer.
     last_resolve: Option<(u32, u32)>,
-    /// The control group's focus pops, by slot (primary, Details).
+    /// The control group's focus pops, by slot of the row (primary, then *Use another account*
+    /// when a discovery failure offers it, then Details: `LoginScreen::slot_of`).
     pop: CtlPop<3>,
 }
 
@@ -2531,6 +2532,7 @@ impl AuthLike for SessionHost {
             switch_refused: false,
             readout_back_resumes: false,
             picker: auth::Picker::Boot,
+            dev_session: false,
         }
     }
 
