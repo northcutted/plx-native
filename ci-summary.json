@@ -253,21 +253,21 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-25T18:02:12Z",
+ "generated": "2026-11-25T18:03:47Z",
  "metrics": [
   {
-   "change30_pct": 43.4,
-   "change7_pct": 41.2,
+   "change30_pct": 44.9,
+   "change7_pct": 42.7,
    "d30": 196,
-   "delta30": 85.0,
-   "delta7": 82.0,
+   "delta30": 88,
+   "delta7": 85,
    "group": "ci",
    "id": "sim|macOS simulator build + launch",
    "kind": "job",
    "label": "Simulator CI: macOS simulator build + launch",
-   "n_now": 50,
+   "n_now": 51,
    "n_prev": 51,
-   "now": 281.0,
+   "now": 284,
    "prev7": 199,
    "shown": true,
    "state": "worse",
@@ -298,18 +298,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 21.5,
-   "change7_pct": -1.2,
+   "change30_pct": 21.7,
+   "change7_pct": -1.1,
    "d30": 339.0,
-   "delta30": 73.0,
-   "delta7": -5.0,
+   "delta30": 73.5,
+   "delta7": -4.5,
    "group": "ci",
    "id": "push_wait",
    "kind": "wait",
    "label": "Wait after merge",
-   "n_now": 59,
+   "n_now": 60,
    "n_prev": 68,
-   "now": 412,
+   "now": 412.5,
    "prev7": 417.0,
    "shown": true,
    "state": "flat",
@@ -541,18 +541,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 33.1,
-   "change7_pct": 1.0,
+   "change30_pct": 33.7,
+   "change7_pct": 1.4,
    "d30": 265.5,
-   "delta30": 88.0,
-   "delta7": 3.5,
+   "delta30": 89.5,
+   "delta7": 5,
    "group": "ci",
    "id": "sim|Linux simulator build + launch",
    "kind": "job",
    "label": "Simulator CI: Linux simulator build + launch",
-   "n_now": 50,
+   "n_now": 51,
    "n_prev": 51,
-   "now": 353.5,
+   "now": 355,
    "prev7": 350,
    "shown": true,
    "state": "flat",
@@ -671,14 +671,14 @@
    "change7_pct": -4.0,
    "d30": 152.5,
    "delta30": 62.5,
-   "delta7": -9.0,
+   "delta7": -9,
    "group": "ci",
    "id": "sim|macOS tests against bundled FFmpeg and ASS",
    "kind": "job",
    "label": "Simulator CI: macOS tests against bundled FFmpeg and ASS",
-   "n_now": 50,
+   "n_now": 51,
    "n_prev": 51,
-   "now": 215.0,
+   "now": 215,
    "prev7": 224,
    "shown": true,
    "state": "flat",
@@ -778,14 +778,14 @@
    "change7_pct": -5.0,
    "d30": 19.0,
    "delta30": 0.0,
-   "delta7": -1.0,
+   "delta7": -1,
    "group": "ci",
    "id": "sim|Windows launcher syntax",
    "kind": "job",
    "label": "Simulator CI: Windows launcher syntax",
-   "n_now": 50,
+   "n_now": 51,
    "n_prev": 51,
-   "now": 19.0,
+   "now": 19,
    "prev7": 20,
    "shown": false,
    "state": "flat",
@@ -881,13 +881,8 @@
  ],
  "regressions": [
   {
-   "change_pct": 41.2,
+   "change_pct": 42.7,
    "commits": [
-    {
-     "pr": 1536,
-     "sha": "02eee3619",
-     "title": "Pilot first-line issue support with Pullfrog"
-    },
     {
      "pr": 1476,
      "sha": "cc14d0af1",
@@ -932,6 +927,11 @@
      "pr": 1545,
      "sha": "6ba798997",
      "title": "Live TV: one wall-clock publication and shared airing text"
+    },
+    {
+     "pr": 1550,
+     "sha": "fbf3021e1",
+     "title": "Tizen: Search raises the TV's own keyboard (Ecore IMF)"
     }
    ],
    "from": 199,
@@ -939,7 +939,7 @@
    "label": "Simulator CI: macOS simulator build + launch",
    "since": "2026-11-25",
    "threshold_pct": 20.0,
-   "to": 281.0
+   "to": 284
   }
  ],
  "schema": 2,
@@ -966,7 +966,7 @@
    "group": "ci",
    "id": "sim|Linux simulator build + launch",
    "label": "Simulator CI: Linux simulator build + launch",
-   "now": 353.5
+   "now": 355
   },
   {
    "group": "ci",
