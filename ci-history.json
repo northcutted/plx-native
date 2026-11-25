@@ -1,4 +1,4 @@
-{"updated":"2026-11-25T23:11:57Z",
+{"updated":"2026-11-25T23:13:12Z",
 "ci":[
 {"id":33028554322,"at":"2026-08-27T00:57:51Z","sha":"af2df6898","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","jobs":{"host checks (NOT a device gate)":108,"cross-build (armv7) + artifact assertions":96},"pr":null,"conclusion":"success","attempt":1},
 {"id":33181037225,"at":"2026-08-28T14:36:41Z","sha":"3d06fbe09","title":"lab: add remote command bridge for cloud TVs","jobs":{"cross-build (armv7) + artifact assertions":108,"host checks (NOT a device gate)":129},"pr":null,"conclusion":"success","attempt":1},
@@ -5897,6 +5897,7 @@
 {"id":45714479259,"at":"2026-11-25T22:35:05Z","sha":"12d815320","title":"Review fixes: no saved-setting flip on a stall, no dead Try again on a dev-token session, stale docs","pr":1556,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Linux simulator build + launch":367,"macOS tests against bundled FFmpeg and ASS":296,"macOS simulator build + launch":135,"Windows launcher syntax":19}},
 {"id":45714834075,"at":"2026-11-25T22:37:35Z","sha":"f523ef7cd","title":"WIP: pin the has_video call; straight alpha is the translucent window's measurement","pr":1555,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Linux simulator build + launch":310,"macOS simulator build + launch":326,"macOS tests against bundled FFmpeg and ASS":225,"Windows launcher syntax":17}},
 {"id":45716118696,"at":"2026-11-25T22:46:56Z","sha":"803ea15e9","title":"Tizen: an opaque window with video, so the TV's home screen no longer shows through the player","pr":1555,"conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":238,"Linux simulator build + launch":358,"Windows launcher syntax":17,"macOS tests against bundled FFmpeg and ASS":268}},
+{"id":45718483103,"at":"2026-11-25T23:04:41Z","sha":"cc7e403f9","title":"Merge origin/main into library-order-data","pr":1552,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":21,"macOS tests against bundled FFmpeg and ASS":207,"Linux simulator build + launch":354,"macOS simulator build + launch":495}},
 {"id":45718596902,"at":"2026-11-25T23:05:28Z","sha":"cdfb72987","title":"Simplify the What's on page","pr":1557,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":23,"macOS tests against bundled FFmpeg and ASS":254,"Linux simulator build + launch":341,"macOS simulator build + launch":206}}
 ],
 "nightly":[
