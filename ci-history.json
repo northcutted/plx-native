@@ -1,4 +1,4 @@
-{"updated":"2026-11-25T15:11:45Z",
+{"updated":"2026-11-25T15:13:46Z",
 "ci":[
 {"id":33028554322,"at":"2026-08-27T00:57:51Z","sha":"af2df6898","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","jobs":{"host checks (NOT a device gate)":108,"cross-build (armv7) + artifact assertions":96},"pr":null,"conclusion":"success","attempt":1},
 {"id":33181037225,"at":"2026-08-28T14:36:41Z","sha":"3d06fbe09","title":"lab: add remote command bridge for cloud TVs","jobs":{"cross-build (armv7) + artifact assertions":108,"host checks (NOT a device gate)":129},"pr":null,"conclusion":"success","attempt":1},
@@ -5832,7 +5832,8 @@
 {"id":45633436260,"at":"2026-11-25T14:22:59Z","sha":"42b0c56cd","title":"fmt: the airing footer-wording test loops over SHIPPED, not a hand-written language list","pr":1545,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":257,"Linux simulator build + launch":320,"macOS tests against bundled FFmpeg and ASS":264,"Windows launcher syntax":24}},
 {"id":45633488664,"at":"2026-11-25T14:23:16Z","sha":"915c446e8","title":"Merge remote-tracking branch 'origin/main' into deps/ffmpeg-9.1","pr":1528,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":311,"Windows launcher syntax":23,"macOS tests against bundled FFmpeg and ASS":510,"Linux simulator build + launch":472}},
 {"id":45634072275,"at":"2026-11-25T14:26:26Z","sha":"42a522e51","title":"Playback: stopping a play that never started its transcoder frees its stream slot at once","pr":1541,"conclusion":"success","attempt":1,"jobs":{"Linux simulator build + launch":385,"Windows launcher syntax":20,"macOS simulator build + launch":262,"macOS tests against bundled FFmpeg and ASS":236}},
-{"id":45636626316,"at":"2026-11-25T14:40:30Z","sha":"6ba798997","title":"Live TV: one wall-clock publication and shared airing text","pr":1545,"conclusion":"failure","attempt":1,"jobs":{"macOS tests against bundled FFmpeg and ASS":597,"Linux simulator build + launch":467,"Windows launcher syntax":18}}
+{"id":45636626316,"at":"2026-11-25T14:40:30Z","sha":"6ba798997","title":"Live TV: one wall-clock publication and shared airing text","pr":1545,"conclusion":"failure","attempt":1,"jobs":{"macOS tests against bundled FFmpeg and ASS":597,"Linux simulator build + launch":467,"Windows launcher syntax":18}},
+{"id":45641023516,"at":"2026-11-25T15:04:28Z","sha":"ca58336eb","title":"docs: the DTS core rule is Feed-only","pr":1547,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":326,"Windows launcher syntax":21,"Linux simulator build + launch":275,"macOS tests against bundled FFmpeg and ASS":237}}
 ],
 "nightly":[
 {"id":35412511191,"at":"2026-09-19T01:23:39Z","sha":"6d0599e36","title":"ci: nightly runs as a dry run on the pull requests that change it","pr":140,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"plan today's nightly":10},"failed":["ARM build + gates / build + verify"]},
