@@ -1,4 +1,4 @@
-{"updated":"2026-11-26T09:34:57Z",
+{"updated":"2026-11-26T09:42:17Z",
 "ci":[
 {"id":33181037225,"at":"2026-08-28T14:36:41Z","sha":"3d06fbe09","title":"lab: add remote command bridge for cloud TVs","jobs":{"cross-build (armv7) + artifact assertions":108,"host checks (NOT a device gate)":129},"pr":null,"conclusion":"success","attempt":1},
 {"id":33192163307,"at":"2026-08-28T16:54:18Z","sha":"d56cf1a71","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","pr":null,"conclusion":"failure","attempt":1,"jobs":{},"failed":["cross-build (armv7) + artifact assertions","host checks (NOT a device gate)"]},
@@ -5946,7 +5946,8 @@
 {"id":45777348751,"at":"2026-11-26T07:42:40Z","sha":"8a01472b4","title":"Live TV: the What's on page","pr":1557,"conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":313,"macOS tests against bundled FFmpeg and ASS":231,"Linux simulator build + launch":426,"Windows launcher syntax":16}},
 {"id":45785711386,"at":"2026-11-26T08:44:25Z","sha":"58ebd30ea","title":"app tests: the retry tests cancel the resolve they start","pr":1553,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":276,"macOS tests against bundled FFmpeg and ASS":199,"Windows launcher syntax":20,"Linux simulator build + launch":338}},
 {"id":45787353730,"at":"2026-11-26T08:55:54Z","sha":"2bdbd8a81","title":"URI engine: a title that played to its end no longer blocks the next play","pr":1560,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":19,"Linux simulator build + launch":395,"macOS simulator build + launch":341,"macOS tests against bundled FFmpeg and ASS":276}},
-{"id":45792135908,"at":"2026-11-26T09:27:28Z","sha":"1aaf33b3d","title":"ui: Entry::store_ret is the one whole-value writer of Entry.ret","pr":1553,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":17,"macOS simulator build + launch":301,"Linux simulator build + launch":369,"macOS tests against bundled FFmpeg and ASS":244}}
+{"id":45792135908,"at":"2026-11-26T09:27:28Z","sha":"1aaf33b3d","title":"ui: Entry::store_ret is the one whole-value writer of Entry.ret","pr":1553,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":17,"macOS simulator build + launch":301,"Linux simulator build + launch":369,"macOS tests against bundled FFmpeg and ASS":244}},
+{"id":45793401533,"at":"2026-11-26T09:35:36Z","sha":"77d7d145f","title":"Detail: hero row with an overflow menu, Select Version, and Audio & Subtitles before playback","pr":1553,"conclusion":"success","attempt":1,"jobs":{"macOS tests against bundled FFmpeg and ASS":170,"Linux simulator build + launch":387,"Windows launcher syntax":23,"macOS simulator build + launch":353}}
 ],
 "nightly":[
 {"id":35412511191,"at":"2026-09-19T01:23:39Z","sha":"6d0599e36","title":"ci: nightly runs as a dry run on the pull requests that change it","pr":140,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"plan today's nightly":10},"failed":["ARM build + gates / build + verify"]},
