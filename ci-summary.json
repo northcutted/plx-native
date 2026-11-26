@@ -267,13 +267,13 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-26T03:48:29Z",
+ "generated": "2026-11-26T04:16:09Z",
  "metrics": [
   {
-   "change30_pct": 40.5,
+   "change30_pct": 41.6,
    "change7_pct": 36.4,
-   "d30": 200,
-   "delta30": 81.0,
+   "d30": 198.5,
+   "delta30": 82.5,
    "delta7": 75.0,
    "group": "ci",
    "id": "sim|macOS simulator build + launch",
@@ -291,18 +291,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 15.9,
+   "change30_pct": 15.8,
    "change7_pct": -2.6,
-   "d30": 358,
-   "delta30": 57,
+   "d30": 358.5,
+   "delta30": 56.5,
    "delta7": -11.0,
    "group": "ci",
    "id": "pr_wait",
    "kind": "wait",
    "label": "PR CI wait",
-   "n_now": 163,
+   "n_now": 164,
    "n_prev": 148,
-   "now": 415,
+   "now": 415.0,
    "prev7": 426.0,
    "shown": true,
    "state": "flat",
@@ -557,7 +557,7 @@
   {
    "change30_pct": 34.3,
    "change7_pct": 1.6,
-   "d30": 265.0,
+   "d30": 265,
    "delta30": 91.0,
    "delta7": 5.5,
    "group": "ci",
@@ -681,10 +681,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 36.7,
+   "change30_pct": 35.4,
    "change7_pct": -2.5,
-   "d30": 159.5,
-   "delta30": 58.5,
+   "d30": 161,
+   "delta30": 57.0,
    "delta7": -5.5,
    "group": "ci",
    "id": "sim|macOS tests against bundled FFmpeg and ASS",
@@ -790,7 +790,7 @@
   {
    "change30_pct": 8.3,
    "change7_pct": -2.5,
-   "d30": 18.0,
+   "d30": 18,
    "delta30": 1.5,
    "delta7": -0.5,
    "group": "ci",
