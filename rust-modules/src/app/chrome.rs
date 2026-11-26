@@ -11,6 +11,7 @@ use plx_data::stores::browse::{DirectoryView, SecKind};
 pub(crate) enum Pill {
     Home,
     Section(SecKind),
+    Playlists,
     Watchlist,
     Search,
 }
@@ -25,6 +26,7 @@ fn strip_keys(directory: DirectoryView<'_>) -> Vec<u32> {
         SecKind::Movie => widgets::TAB_KEY_MOVIES,
         SecKind::Show => widgets::TAB_KEY_SHOWS,
     }));
+    keys.push(widgets::TAB_KEY_PLAYLISTS);
     keys.push(widgets::TAB_KEY_WATCHLIST);
     keys.push(widgets::TAB_KEY_SEARCH);
     keys
@@ -39,6 +41,7 @@ fn pill_in(i: usize, keys: &[u32]) -> Pill {
     match keys.get(i).copied() {
         Some(widgets::TAB_KEY_MOVIES) => Pill::Section(SecKind::Movie),
         Some(widgets::TAB_KEY_SHOWS) => Pill::Section(SecKind::Show),
+        Some(widgets::TAB_KEY_PLAYLISTS) => Pill::Playlists,
         Some(widgets::TAB_KEY_WATCHLIST) => Pill::Watchlist,
         Some(widgets::TAB_KEY_SEARCH) => Pill::Search,
         _ => Pill::Home,
@@ -54,6 +57,7 @@ fn pill_index(pill: Pill, keys: &[u32]) -> Option<usize> {
         Pill::Home => widgets::TAB_KEY_HOME,
         Pill::Section(SecKind::Movie) => widgets::TAB_KEY_MOVIES,
         Pill::Section(SecKind::Show) => widgets::TAB_KEY_SHOWS,
+        Pill::Playlists => widgets::TAB_KEY_PLAYLISTS,
         Pill::Watchlist => widgets::TAB_KEY_WATCHLIST,
         Pill::Search => widgets::TAB_KEY_SEARCH,
     };
@@ -117,6 +121,7 @@ impl ChromeSnapshot {
                 widgets::TAB_KEY_HOME => TabFace::Label(plx_platform::i18n::msg::browse_chrome_home().into()),
                 widgets::TAB_KEY_MOVIES => TabFace::Label(plx_platform::i18n::msg::browse_kind_movies().into()),
                 widgets::TAB_KEY_SHOWS => TabFace::Label(plx_platform::i18n::msg::browse_kind_tv_shows().into()),
+                widgets::TAB_KEY_PLAYLISTS => TabFace::Label(plx_platform::i18n::msg::collections_page_playlist_tab().into()),
                 widgets::TAB_KEY_WATCHLIST => TabFace::Icon(Icon::Bookmark),
                 _ => TabFace::Icon(Icon::Search),
             }).collect();
@@ -311,12 +316,12 @@ mod tests {
         };
         snapshot.refresh(&plx_ui::fixture::FixtureMeasure, directory.view());
         assert_eq!(snapshot.keys, vec![widgets::TAB_KEY_HOME, widgets::TAB_KEY_MOVIES,
-            widgets::TAB_KEY_SHOWS, widgets::TAB_KEY_WATCHLIST, widgets::TAB_KEY_SEARCH]);
+            widgets::TAB_KEY_SHOWS, widgets::TAB_KEY_PLAYLISTS, widgets::TAB_KEY_WATCHLIST, widgets::TAB_KEY_SEARCH]);
         let words: Vec<&str> = snapshot.faces.iter().filter_map(|face| match face {
             TabFace::Label(word) => Some(word.as_str()),
             TabFace::Icon(_) => None,
         }).collect();
-        assert_eq!(&words[..3], &["Home", "Movies", "TV Shows"]);
+        assert_eq!(words, ["Home", "Movies", "TV Shows", "Playlists"]);
         assert_eq!(snapshot.faces.last(), Some(&TabFace::Icon(Icon::Search)));
         assert_eq!(snapshot.faces[snapshot.faces.len() - 2], TabFace::Icon(Icon::Bookmark),
             "the Watchlist bookmark sits just before Search");
@@ -324,7 +329,7 @@ mod tests {
         snapshot.members(0, None, 0.0, &mut members);
         assert_eq!(members.iter().map(|member| member.elem).collect::<Vec<_>>(),
             vec![widgets::TAB_KEY_CHIP, widgets::TAB_KEY_HOME, widgets::TAB_KEY_MOVIES,
-                widgets::TAB_KEY_SHOWS, widgets::TAB_KEY_WATCHLIST, widgets::TAB_KEY_SEARCH]);
+                widgets::TAB_KEY_SHOWS, widgets::TAB_KEY_PLAYLISTS, widgets::TAB_KEY_WATCHLIST, widgets::TAB_KEY_SEARCH]);
     }
 
     #[test]
@@ -364,11 +369,12 @@ mod tests {
         let directory = directory(&[SecKind::Movie, SecKind::Show]);
         let view = directory.view();
         assert_eq!(strip_keys(view), vec![widgets::TAB_KEY_HOME, widgets::TAB_KEY_MOVIES,
-            widgets::TAB_KEY_SHOWS, widgets::TAB_KEY_WATCHLIST, widgets::TAB_KEY_SEARCH]);
-        assert_eq!(pill_of(view, Pill::Watchlist), Some(3));
-        assert_eq!(pill_of(view, Pill::Search), Some(4));
-        assert_eq!(pill_at(view, 3), Pill::Watchlist);
-        assert_eq!(pill_at(view, 4), Pill::Search);
+            widgets::TAB_KEY_SHOWS, widgets::TAB_KEY_PLAYLISTS, widgets::TAB_KEY_WATCHLIST, widgets::TAB_KEY_SEARCH]);
+        assert_eq!(pill_of(view, Pill::Playlists), Some(3));
+        assert_eq!(pill_of(view, Pill::Watchlist), Some(4));
+        assert_eq!(pill_of(view, Pill::Search), Some(5));
+        assert_eq!(pill_at(view, 4), Pill::Watchlist);
+        assert_eq!(pill_at(view, 5), Pill::Search);
     }
 
     #[test]

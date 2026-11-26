@@ -1351,6 +1351,7 @@ impl Bridge {
         if wears_tab_bar(route) {
             d.nav.tabs.strip_fallback = Some(match route {
                 AppArg::Search => plx_ui::widgets::TAB_KEY_SEARCH,
+                arg if arg.is_playlists() => plx_ui::widgets::TAB_KEY_PLAYLISTS,
                 AppArg::Watchlist => plx_ui::widgets::TAB_KEY_WATCHLIST,
                 _ => plx_screens::home::STRIP_HOME_ELEM,
             });
@@ -4127,6 +4128,7 @@ fn pill_of_arg(arg: &AppArg, directory: plx_data::stores::browse::DirectoryView<
     match arg {
         AppArg::Home => pill_of(directory, Pill::Home),
         AppArg::Search => pill_of(directory, Pill::Search),
+        arg if arg.is_playlists() => pill_of(directory, Pill::Playlists),
         AppArg::Watchlist => pill_of(directory, Pill::Watchlist),
         // The grid and the two pages its header pushes (Collections, Recommended) are all the
         // library's: they select its type's pill, the pill they were opened from.
@@ -4179,6 +4181,7 @@ pub(crate) fn nav_tab(
                 let want = match pill {
                     Pill::Home => HomeTab::Home,
                     Pill::Search => HomeTab::Search,
+                    Pill::Playlists => HomeTab::Playlists,
                     Pill::Watchlist => HomeTab::Watchlist,
                     Pill::Section(plx_data::browse::SecKind::Movie) => HomeTab::Movies,
                     Pill::Section(plx_data::browse::SecKind::Show) => HomeTab::Shows,
@@ -4222,6 +4225,14 @@ pub(crate) fn nav_tab(
             AppArg::Library
         }
         HomeTab::Search => AppArg::Search,
+        HomeTab::Playlists => {
+            use plx_plex::plex::collections::CollectionRef;
+            let directory = rig.directory.view();
+            let sid = directory.current().and_then(|i| directory.sections()[i].sid)
+                .or_else(|| directory.source().map(|source| source.0))
+                .unwrap_or_else(plx_plex::plex::current_server);
+            AppArg::Content(ContentArg::Collection(CollectionRef::playlist_directory(sid, plx_platform::i18n::msg::collections_page_playlist_tab())))
+        }
         HomeTab::Watchlist => AppArg::Watchlist,
     };
     nav_peer(d, arg, ret);

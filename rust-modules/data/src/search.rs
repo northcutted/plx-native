@@ -286,7 +286,7 @@ impl CollectionHit {
         let by_tag = self.tag > 0 && self.item.sec > 0;
         (!self.item.rk.is_empty() || by_tag).then(|| crate::stores::ContentArg::Collection(
             plx_plex::plex::collections::CollectionRef {
-                sid: self.item.sid,
+                group: Default::default(), thumb: String::new(), sid: self.item.sid,
                 rk: self.item.rk.clone(),
                 sec: self.item.sec,
                 tag: self.tag,

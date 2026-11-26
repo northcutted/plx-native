@@ -1095,6 +1095,7 @@ impl LibraryScreen {
             TAB_KEY_MOVIES => Some(LibraryReq::Tab(HomeTab::Movies)),
             TAB_KEY_SHOWS => Some(LibraryReq::Tab(HomeTab::Shows)),
             TAB_KEY_SEARCH => Some(LibraryReq::Tab(HomeTab::Search)),
+            plx_ui::widgets::TAB_KEY_PLAYLISTS => Some(LibraryReq::Tab(HomeTab::Playlists)),
             TAB_KEY_WATCHLIST => Some(LibraryReq::Tab(HomeTab::Watchlist)),
             TAB_KEY_CHIP => Some(LibraryReq::Account),
             _ => None,

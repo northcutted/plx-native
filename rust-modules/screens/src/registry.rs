@@ -326,6 +326,7 @@ pub enum HomeTab {
     Home,
     Movies,
     Shows,
+    Playlists,
     /// The Watchlist mark, before Search (docs/watchlist-plan.md §2.4 W45).
     Watchlist,
     Search,
@@ -1142,6 +1143,7 @@ pub const PAGE_MEMORY_SHAPE: &str = "PageMemory{None,Detail:{spot:Spot{section:i
 
 /// Effects cross the screen/loop boundary; screens do not poll one another's pending latches.
 pub enum ContentReq {
+    Strip(u32),
     Push(ContentArg),
     Present(ContentArg),
     Back,
@@ -1996,6 +1998,10 @@ pub enum AppArg {
 }
 
 impl AppArg {
+    pub fn is_playlists(&self) -> bool {
+        matches!(self, Self::Content(ContentArg::Collection(id)) if id.group == plx_plex::plex::collections::GroupKind::Playlists)
+    }
+
     /// Is this one of the library screen's three routes: the full grid and the two pages its header
     /// pushes over it (Collections, Recommended)? They are all the one `LibraryScreen` family, so a
     /// request or a command addressed to "the library" is answered on any of them.
@@ -2068,6 +2074,7 @@ impl plx_ui::screen::ScreenArg for AppArg {
     /// them fade the bar with the page.
     fn chrome(&self) -> Chrome {
         match self {
+            route if route.is_playlists() => Chrome::TabBar,
             AppArg::Home | AppArg::Library | AppArg::Search | AppArg::Watchlist => Chrome::TabBar,
             // The two sub-pages of a library keep the bar, as the Library they are pushed over.
             AppArg::LibraryCollections { .. } | AppArg::LibraryRecommended { .. } => Chrome::TabBar,
@@ -2878,7 +2885,7 @@ mod arg_tests {
     fn collection_content_arg_has_the_pinned_canonical_field_order() {
         let sid = plx_plex::plex::ServerId::from_raw(7);
         let arg = ContentArg::Collection(plx_plex::plex::collections::CollectionRef {
-            sid, rk: "50077".into(), sec: 8, tag: 77, name: "Fixture".into(),
+            group: Default::default(), thumb: String::new(), sid, rk: "50077".into(), sec: 8, tag: 77, name: "Fixture".into(),
         });
         let mut expected = Canon::new();
         expected.u32(3).u32(7).str("50077").u64(8).u64(77).str("Fixture");
@@ -2889,7 +2896,7 @@ mod arg_tests {
     fn collection_identity_never_compares_a_tag_with_a_rating_key() {
         let sid = plx_plex::plex::ServerId::from_raw(2);
         let by_rk = |rk: &str, tag| ContentArg::Collection(plx_plex::plex::collections::CollectionRef {
-            sid, rk: rk.into(), sec: 4, tag, name: "A".into(),
+            group: Default::default(), thumb: String::new(), sid, rk: rk.into(), sec: 4, tag, name: "A".into(),
         });
         // The rule itself is `CollectionRef::same_collection`'s (graded in `plex::collections`);
         // this pins that a page argument asks it rather than a copy.
@@ -2915,10 +2922,10 @@ mod arg_tests {
     #[test]
     fn collection_is_its_own_page_identity() {
         let a = AppArg::Content(ContentArg::Collection(plx_plex::plex::collections::CollectionRef {
-            sid: plx_plex::plex::ServerId::UNSET, rk: "50001".into(), sec: 1, tag: 1, name: "A".into(),
+            group: Default::default(), thumb: String::new(), sid: plx_plex::plex::ServerId::UNSET, rk: "50001".into(), sec: 1, tag: 1, name: "A".into(),
         }));
         let b = AppArg::Content(ContentArg::Collection(plx_plex::plex::collections::CollectionRef {
-            sid: plx_plex::plex::ServerId::UNSET, rk: "50001".into(), sec: 1, tag: 9, name: "Renamed".into(),
+            group: Default::default(), thumb: String::new(), sid: plx_plex::plex::ServerId::UNSET, rk: "50001".into(), sec: 1, tag: 9, name: "Renamed".into(),
         }));
         assert_eq!(a.id(), ScreenId(23));
         assert!(a.same_instance(&b));

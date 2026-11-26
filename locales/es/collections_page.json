@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "No hay colecciones en {library}"
+  "collections_page.empty": "No hay colecciones en {library}",
+  "collections_page.playlist_tab": "Listas de reproducción",
+  "collections_page.playlist_kind": "Lista de vídeos",
+  "collections_page.playlist_heading": "Listas de vídeos",
+  "collections_page.playlist_order": "Vídeos en el orden de la lista",
+  "collections_page.playlist_shuffle": "Reproducir en orden aleatorio",
+  "collections_page.playlist_shuffle_failed": "Error al mezclar · Reintentar",
+  "collections_page.playlist_shuffling": "Mezclando…",
+  "collections_page.playlist_empty_directory": "No hay listas de vídeos en este servidor",
+  "collections_page.playlist_empty_members": "No hay vídeos reproducibles en esta lista",
+  "collections_page.playlist_queue_failed": "No se pudo abrir la lista en el vídeo seleccionado. Vuelve a abrirla e inténtalo de nuevo.",
+  "collections_page.playlist_unavailable": "Las listas de reproducción no están disponibles para este perfil"
 }

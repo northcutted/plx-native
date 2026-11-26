@@ -12,6 +12,8 @@ fn content(arg: &plx_screens::registry::ContentArg) -> Value {
         ContentArg::Detail { sid, rk } => json!({"detail":[sid.raw(),rk]}),
         ContentArg::Person { sid, key, guid, name, thumb } => json!({"person":[sid.raw(),key,guid,name,thumb]}),
         ContentArg::Filmography { sid, key } => json!({"filmography":[sid.raw(),key]}),
+        ContentArg::Collection(id) if id.group == plx_plex::plex::collections::GroupKind::Playlists => json!({"playlists":[id.sid.raw(),id.name]}),
+        ContentArg::Collection(id) if id.group == plx_plex::plex::collections::GroupKind::Playlist => json!({"playlist":[id.sid.raw(),id.rk,id.name,id.thumb]}),
         ContentArg::Collection(id) => json!({"collection":[id.sid.raw(),id.rk,id.sec,id.tag,id.name]}),
         ContentArg::Catalog { hex } => json!({"catalog":plx_data::watchlist::encode_hex(hex)}),
     }
@@ -33,7 +35,7 @@ fn home_command(command: &plx_screens::registry::HomeCmd) -> Value {
         HomeCmd::Hero => json!("hero"),
         HomeCmd::FocusStrip(tab) => json!({"focus_strip":match tab {
             HomeTab::Home => "home", HomeTab::Movies => "movies", HomeTab::Shows => "shows", HomeTab::Search => "search",
-            HomeTab::Watchlist => "watchlist" }}),
+            HomeTab::Playlists => "playlists", HomeTab::Watchlist => "watchlist" }}),
         HomeCmd::Flip(delta) => json!({"flip":delta}),
         HomeCmd::SelectHero(index) => json!({"select_hero":index}),
         HomeCmd::PinHero(index) => json!({"pin_hero":index}),
@@ -177,6 +179,7 @@ fn content_request(request: &plx_screens::registry::ContentReq) -> Result<Value,
     Ok(match request {
         ContentReq::Push(arg) => json!({"push":content(arg)}),
         ContentReq::Present(arg) => json!({"present":content(arg)}),
+        ContentReq::Strip(key) => json!({"strip": key}),
         ContentReq::Back => json!("back"),
         ContentReq::PreviewStart { sid, rk, part, vcodec, acodec, title } =>
             json!({"preview_start":{"sid":sid.raw(),"rk":rk,"part":part,
@@ -257,6 +260,9 @@ fn store(command: &plx_data::stores::StoreCmd) -> Result<Value, &'static str> {
         StoreCmd::Collection(cmd) => {
             use plx_data::stores::collection::CollectionCmd;
             json!({"collection":match cmd {
+                CollectionCmd::Shuffle { generation } => json!({"shuffle": generation}),
+                CollectionCmd::Open { target } if target.id.group != plx_plex::plex::collections::GroupKind::Collection =>
+                    json!({"open_group":[content(&plx_screens::registry::ContentArg::Collection(target.id.clone())),target.want]}),
                 CollectionCmd::Open { target } => json!({"open":[target.id.sid.raw(),target.id.rk,target.id.sec,target.id.tag,target.id.name,target.want]}),
                 CollectionCmd::Window { wanted, focus, restore } =>
                     json!({"window":[wanted.start,wanted.end,focus,restore]}),

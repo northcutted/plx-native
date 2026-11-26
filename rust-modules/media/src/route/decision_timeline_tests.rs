@@ -456,7 +456,7 @@ fn a_session_resolved_for_a_preview_never_reports_a_timeline() {
         ctx: plx_data::metadata::TRAILER_CONTEXT.into(),
         preview: true,
         version: None,
-        show_rk: String::new(),
+        playlist: None, show_rk: String::new(),
     });
     apply_plan(
         &mut ps,

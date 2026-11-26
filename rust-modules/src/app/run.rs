@@ -4300,6 +4300,11 @@ mod lifecycle_regression_tests {
             }
         };
         step(&mut app, vec![], &mut t);
+        let playlists = plx_ui::widgets::TAB_KEY_PLAYLISTS;
+        walk_to(&mut app, playlists, &mut t);
+        press(&mut app, Key::Ok, &mut t);
+        assert!(app.route().is_playlists());
+        assert_eq!(app.pages.nav.tabs.strip_selected, Some(playlists));
         walk_to(&mut app, TAB_KEY_WATCHLIST, &mut t);
         press(&mut app, Key::Ok, &mut t);
         assert!(app.route() == AppArg::Watchlist, "the strip opens the Watchlist");

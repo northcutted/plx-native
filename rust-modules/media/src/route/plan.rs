@@ -1214,6 +1214,7 @@ pub enum PlayVerdict {
     PreviewNeedsDirectPlay,
     /// This build has no Feed executor and no source-specific URI qualification was granted.
     NoQualifiedBackend,
+    PlaylistUnavailable,
 }
 
 /// The limitation a Force Direct Play verdict names. Each one carries the same recovery step.
@@ -1245,6 +1246,7 @@ impl PlayVerdict {
             Self::Server(sentence, _) => Borrowed(sentence),
             Self::DirectPlayDisabled => Borrowed(msg::widgets_verdict_direct_play_disabled()),
             Self::PreviewNeedsDirectPlay => Borrowed(msg::widgets_reason_open()),
+            Self::PlaylistUnavailable => Borrowed(plx_platform::i18n::msg::collections_page_playlist_queue_failed()),
             Self::NoQualifiedBackend => Borrowed(msg::widgets_reason_open()),
             Self::Forced(why) => match why {
                 ForcedFailure::NoOriginal => Borrowed(msg::widgets_verdict_forced_no_original()),
@@ -1332,12 +1334,9 @@ pub struct UpNext {
 }
 
 
-/// Build the Up Next descriptor from a queue row. Episodes only: `continuous=1` on a movie
-/// returns just the movie itself (verified live — total count 1), and "up next" is a show idea.
-/// The gate belongs HERE, on the one-item control — the retained row list is deliberately not
-/// episode-gated, because a queue list has to be able to show whatever the queue holds.
+/// Project a playable video successor for the Up Next control.
 pub(super) fn up_next_of(r: &plx_plex::plex::QueueRow) -> Option<UpNext> {
-    if r.kind != "episode" || r.rk.is_empty() {
+    if !matches!(r.kind.as_str(), "episode" | "movie") || r.rk.is_empty() || r.part.is_empty() {
         return None;
     }
     Some(UpNext {
@@ -1461,6 +1460,7 @@ pub struct ResolveEnv {
     /// BEFORE it are in the queue and Previous has somewhere to go
     /// ([`plx_plex::plex::Client::create_play_queue`]).
     pub queue_show_rk: String,
+    pub queue_playlist: Option<plx_plex::plex::collections::PlaylistStart>,
     /// An explicit queue-item handoff reuses the existing queue instead of POSTing a new tail.
     pub queue_continuation: Option<super::queue_navigation::QueueContinuation>,
     /// Hero preview. Skip the PlayQueue entirely, and refuse anything that is not a direct play.
@@ -1822,13 +1822,13 @@ pub(super) fn build_stream(off: &plx_base::task::OffFrame, rk: &str, part: &str,
         let playback_quality = if forced { Quality::Original } else { env.quality };
         let session = new_sess(rk);
         let new_plan = || Plan { sess: session.clone(), ..base_plan() };
-        let queue = if !rk.is_empty() && !env.preview {
+        let mut queue = if !rk.is_empty() && !env.preview {
             // Both candidate passes share one PlayQueue and one playback session.
             let session = session.clone();
             Some(plx_base::task::beside(s, "route-queue", move || {
                 env.queue_continuation.as_ref().filter(|queue| queue.matches(env.sid, rk))
                     .map(|queue| queue.refreshed(client).resolve()).unwrap_or_else(|| resolve_playqueue(
-                        client, rk, &env.queue_show_rk, &session, &env.machine_id, !env.omit_queue_continuous,
+                        client, rk, &env.queue_show_rk, env.queue_playlist.as_ref(), &session, &env.machine_id, !env.omit_queue_continuous,
                     ))
             }))
         } else {
@@ -1861,6 +1861,14 @@ pub(super) fn build_stream(off: &plx_base::task::OffFrame, rk: &str, part: &str,
                 None => (None, None),
             },
         };
+        // An explicit playlist start promises this occurrence and its neighbours. Verify it
+        // before opening a stream, while letting its request overlap the metadata lookup.
+        let selected_queue = if env.queue_playlist.is_some() {
+            match queue.take().map(|job| job.finish()) {
+                Some(q) if !q.id.is_empty() && !q.item_id.is_empty() => Some(q),
+                _ => return Plan { verdict: Some(PlayVerdict::PlaylistUnavailable), ..new_plan() },
+            }
+        } else { None };
         let resolve_candidate = |mut plan: Plan,
                                  playing: Option<plx_data::metadata::PlayingItem>,
                                  played: Option<plx_data::metadata::PlayedVersion>,
@@ -3212,8 +3220,8 @@ pub(super) fn build_stream(off: &plx_base::task::OffFrame, rk: &str, part: &str,
         if let Some(line) = uri_decline_line(env.uri_engine, &plan) {
             crate::player::log(&line);
         }
-        if let Some(queue) = queue {
-            land_queue(&mut plan, queue.finish());
+        if let Some(answer) = selected_queue.or_else(|| queue.map(|job| job.finish())) {
+            land_queue(&mut plan, answer);
         }
         plan
     })

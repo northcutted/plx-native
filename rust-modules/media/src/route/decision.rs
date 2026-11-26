@@ -71,6 +71,7 @@ struct PlaybackRequest {
     /// ([`ResolveEnv::queue_show_rk`]), so a retry or a quality change of this playback builds the
     /// same queue.
     show_rk: String,
+    playlist: Option<plx_plex::plex::collections::PlaylistStart>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -651,7 +652,7 @@ mod uri_failure_recovery_tests {
         session.request = Some(PlaybackRequest { sid: ServerId::UNSET, rk: "42".into(),
             part: "/library/parts/7".into(), vcodec: "h264".into(), acodec: "aac".into(),
             title: "Film".into(), ctx: String::new(), preview: false, version: None,
-            show_rk: String::new() });
+            playlist: None, show_rk: String::new() });
         let mut policy = BackendPolicy::for_request(false);
         policy.qualify(BackendKind::Uri, OfferId::URI_ORIGINAL, Qualification::Qualified);
         assert!(policy.admitted(BackendKind::Uri, OfferId::URI_ORIGINAL));
@@ -961,7 +962,7 @@ mod backend_offer_session_tests {
         session.request = Some(PlaybackRequest {
             sid: session.cur_sid, rk: "42".into(), part: "/library/parts/7".into(),
             vcodec: "h264".into(), acodec: "ac3".into(), title: "Film".into(),
-            ctx: String::new(), preview: false, version: None, show_rk: String::new(),
+            ctx: String::new(), preview: false, version: None, playlist: None, show_rk: String::new(),
         });
         assert_eq!(menu_enhancement_availability(&session),
             EnhancementAvailability::Offered(EnhancementRoute::Remux),
@@ -976,7 +977,7 @@ mod backend_offer_session_tests {
         session.request = Some(PlaybackRequest {
             sid: ServerId::UNSET, rk: "42".into(), part: "/library/parts/7".into(),
             vcodec: "h264".into(), acodec: "ac3".into(), title: "Film".into(),
-            ctx: String::new(), preview: false, version: None, show_rk: String::new(),
+            ctx: String::new(), preview: false, version: None, playlist: None, show_rk: String::new(),
         });
         let mut meta = plx_data::stores::metadata::MetadataStore::default();
         let change = ViewerReconfigure::Speed(1500);
@@ -9857,6 +9858,7 @@ pub(super) fn resolve_playqueue(
     c: &plx_plex::plex::Client,
     rk: &str,
     show_rk: &str,
+    playlist: Option<&plx_plex::plex::collections::PlaylistStart>,
     session: &str,
     cached: &str,
     continuous: bool,
@@ -9864,7 +9866,7 @@ pub(super) fn resolve_playqueue(
     let known = c.machine_id();
     // `mid` is the FETCHED id and nothing else: apply_plan's "" means "leave the cache alone", and
     // the first two rungs are already-known values with nothing to write back.
-    let mid = if known.is_empty() && cached.is_empty() {
+    let mid = if playlist.is_none() && known.is_empty() && cached.is_empty() {
         c.machine_identity().unwrap_or_default()
     } else {
         String::new()
@@ -9876,13 +9878,18 @@ pub(super) fn resolve_playqueue(
     } else {
         cached
     };
-    if effective.is_empty() {
+    if playlist.is_none() && effective.is_empty() {
         crate::player::log("playqueue: no machineIdentifier (skip)");
         return QueueInfo::default();
     }
-    match c.create_play_queue(effective, rk, show_rk, session, continuous) {
+    let queue = match playlist {
+        Some(start) => c.create_playlist_queue(start, rk, session),
+        None => c.create_play_queue(effective, rk, show_rk, session, continuous),
+    };
+    match queue {
         Some(q) => {
-            let up_next = q.next.as_ref().and_then(up_next_of);
+            let up_next = plx_plex::plex::queue_index_of(&q.items, q.selected_item_id, c.id(), rk)
+                .and_then(|at| super::queue_navigation::next_video(&q.items, at)).and_then(up_next_of);
             crate::player::log(&format!(
                 "playqueue: id={} item={} remaining={} rows={} next={}",
                 q.id,
@@ -9973,6 +9980,7 @@ impl ResolveEnv {
             resume_ns: ps.requested_resume_ns,
             src_kbps: resolve_src_kbps(meta.current(), sid, rk),
             omit_queue_continuous: false,
+            queue_playlist: None,
             queue_show_rk: String::new(),
             queue_continuation: None,
             preview: false,
@@ -10263,7 +10271,7 @@ pub fn request_play(
             ctx: ctx.to_owned(),
             preview: false,
             version,
-            show_rk: show_rk.to_owned(),
+            playlist: None, show_rk: show_rk.to_owned(),
         },
         None,
         None,
@@ -10291,7 +10299,7 @@ pub fn request_play_queue_item(
     request_play_with_queue(ps, meta, caps, PlaybackRequest {
         sid: row.sid, rk: row.rk.clone(), part: row.part.clone(), vcodec: row.vcodec.clone(),
         acodec: row.acodec.clone(), title: title.clone(), ctx: ctx.into(), preview: false, version: None,
-        show_rk: row.show_rk.clone(),
+        playlist: None, show_rk: row.show_rk.clone(),
     }, None, None, false, crate::player::report::AttemptOrigin::Fresh, queue, false, None)
 }
 
@@ -10322,7 +10330,7 @@ pub fn request_preview(
             ctx: plx_data::metadata::TRAILER_CONTEXT.to_owned(),
             preview: true,
             version: None,
-            show_rk: String::new(),
+            playlist: None, show_rk: String::new(),
         },
         None,
         None,
@@ -10347,6 +10355,7 @@ fn request_env(
 ) -> ResolveEnv {
     let mut env = ResolveEnv::snapshot(ps, meta, request.sid, &request.rk);
     env.omit_queue_continuous = plx_data::metadata::context_omits_queue_continuous(&request.ctx);
+    env.queue_playlist = request.playlist.clone();
     env.queue_show_rk = request.show_rk.clone();
     env.set_preview(request.preview);
     env.fresh_play = retry.is_none() && !request.preview;
@@ -10995,6 +11004,14 @@ pub fn request_play_movie(
     //
     // `surface_sid()` stays as the fallback for a row with no server on it: rows built by host
     // tests, and any row parsed before a registry existed, carry `UNSET`.
+    if let Some(start) = &m.playlist {
+        let request = PlaybackRequest {
+            sid: item_sid(m.sid), rk: m.rk.clone(), part: m.part.clone(), vcodec: m.vcodec.clone(),
+            acodec: m.acodec.clone(), title: m.title.clone(), ctx: ctx.into(), version, preview: false,
+            show_rk: String::new(), playlist: Some(start.as_ref().clone()),
+        };
+        return request_play_inner(ps, meta, caps, request, None, None, false, crate::player::report::AttemptOrigin::Fresh);
+    }
     request_play(
         ps,
         meta,
@@ -14033,7 +14050,7 @@ pub(crate) fn resolve_refused_preview_for_test(ps: &mut PlaybackSession) {
         ctx: plx_data::metadata::TRAILER_CONTEXT.into(),
         preview: true,
         version: None,
-        show_rk: String::new(),
+        playlist: None, show_rk: String::new(),
     });
     test_support::apply_plan(ps, plan, "trailer");
     crate::route::resolve_as_preview_for_test(ps);

@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "Keine Sammlungen in {library}"
+  "collections_page.empty": "Keine Sammlungen in {library}",
+  "collections_page.playlist_tab": "Wiedergabelisten",
+  "collections_page.playlist_kind": "Video-Wiedergabeliste",
+  "collections_page.playlist_heading": "Video-Wiedergabelisten",
+  "collections_page.playlist_order": "Videos in Listenreihenfolge",
+  "collections_page.playlist_shuffle": "Zufallswiedergabe",
+  "collections_page.playlist_shuffle_failed": "Zufallswiedergabe fehlgeschlagen · Erneut versuchen",
+  "collections_page.playlist_shuffling": "Wird gemischt…",
+  "collections_page.playlist_empty_directory": "Keine Video-Wiedergabelisten auf diesem Server",
+  "collections_page.playlist_empty_members": "Keine abspielbaren Videos in dieser Liste",
+  "collections_page.playlist_queue_failed": "Die Wiedergabeliste konnte beim ausgewählten Video nicht geöffnet werden. Öffne die Liste erneut und versuche es noch einmal.",
+  "collections_page.playlist_unavailable": "Wiedergabelisten sind für dieses Profil nicht verfügbar"
 }

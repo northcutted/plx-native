@@ -1203,7 +1203,7 @@ pub(crate) fn play_up_next(
     // threshold scrobbles it, one past the threshold is the server's to count. `queue_transport::play`'s
     // stop takes the flag (`route::scrobble_stop`).
     ps.finished = true;
-    if let Some(row) = plx_media::route::queue_neighbor(ps, plx_media::route::QueueStep::Next)
+    if let Some(row) = plx_media::route::queue_next_video(ps)
         .filter(|row| row.rk == u.rk) {
         return queue_transport::play(ps, pa, row, hud_ms, pages, bridge);
     }

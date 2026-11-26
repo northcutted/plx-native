@@ -299,6 +299,12 @@ pub struct MetadataImage {
 /// The movie/show/season/episode item. Missing fields default (Plex omits optionals).
 #[derive(Deserialize, Default)]
 pub struct Metadata {
+    #[serde(rename = "playlistItemID", default, deserialize_with = "de_i64")]
+    pub playlist_item_id: i64,
+    #[serde(default)]
+    pub composite: String,
+    #[serde(rename = "playlistType", default)]
+    pub playlist_type: String,
     /// Only on a read that asked `includePreferences=1` — see [`Preferences`].
     #[serde(rename = "Preferences", default)]
     pub preferences: Preferences,

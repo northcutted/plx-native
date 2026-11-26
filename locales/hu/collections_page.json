@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "Nincs gyűjtemény itt: {library}"
+  "collections_page.empty": "Nincs gyűjtemény itt: {library}",
+  "collections_page.playlist_tab": "Lejátszási listák",
+  "collections_page.playlist_kind": "Videólejátszási lista",
+  "collections_page.playlist_heading": "Videólejátszási listák",
+  "collections_page.playlist_order": "Videók a lista sorrendjében",
+  "collections_page.playlist_shuffle": "Véletlen sorrend",
+  "collections_page.playlist_shuffle_failed": "A keverés nem sikerült · Újra",
+  "collections_page.playlist_shuffling": "Keverés…",
+  "collections_page.playlist_empty_directory": "Ezen a kiszolgálón nincsenek videólejátszási listák",
+  "collections_page.playlist_empty_members": "Nincs lejátszható videó ezen a listán",
+  "collections_page.playlist_queue_failed": "Nem sikerült megnyitni a listát a kiválasztott videónál. Nyisd meg újra a listát, és próbáld újra.",
+  "collections_page.playlist_unavailable": "A lejátszási listák nem érhetők el ezzel a profillal"
 }

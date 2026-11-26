@@ -16,7 +16,7 @@
 
 use std::ffi::CString;
 
-use plx_data::collection::{Collection, CollectionOrder, CollectionStatus, CollectionTarget, PAGE_SIZE};
+use plx_data::collection::{ShuffleState, Collection, CollectionOrder, CollectionStatus, CollectionTarget, PAGE_SIZE};
 use plx_plex::plex::collections::CollectionRef;
 use plx_data::pms::PmsMovie;
 use plx_data::stores::collection::CollectionCmd;
@@ -34,8 +34,9 @@ use plx_ui::route_screen::{self, CRUMB_BAND, CRUMB_RISE};
 use plx_ui::text_view::TextView;
 use plx_ui::theme;
 use plx_ui::widgets::{self, Art, PageGround, StatusKind, StatusOverlay};
-use plx_ui::{Env, Painter, Rect};
+use plx_ui::{Env, Painter, Rect, View};
 
+use plx_plex::plex::collections::GroupKind as Source;
 use super::registry::{merged_ranges, row_neighbourhood, tile_facts, AppFx, CardKeys, CardPageMemory, CollectionLike, ContentArg,
     ContentLike, ContentPanel, ContentReq, PageMemory};
 
@@ -107,6 +108,7 @@ const MORE_GAP: f32 = theme::space::LG;
 const ITEMS_HEADING_Y: f32 = 447.0;
 /// The first row's poster top (`.tl { top:520px }`).
 const GRID_TOP: f32 = 520.0;
+const PLAYLIST_GRID_TOP: f32 = 224.0;
 /// C4a: the quiet read-outs' region, where the grid would be (`left:96; right:96; top:460;
 /// height:475`), its copy centred in it.
 const STATUS_FRAME: Rect = Rect { x: MARGIN_X, y: 460.0, w: SCR_W - 2.0 * MARGIN_X, h: 475.0 };
@@ -153,11 +155,21 @@ fn head_alpha(scroll: f32) -> f32 {
 /// The header's meta line — "N films · Collection" (the noun is the collection's own, the one its
 /// tile's caption uses: `fmt::collection_count`), or the kind alone ([`meta_key`]).
 fn meta_line(collection: &Collection) -> CString {
+    match collection.id.group {
+        Source::Playlists => return c"Plex Media Server".to_owned(),
+        Source::Playlist => return plx_platform::i18n::msg::collections_page_playlist_kind_c().to_owned(),
+        Source::Collection => {}
+    }
     match meta_key(collection) {
         (_, true, _) => plx_platform::i18n::msg::browse_collection_kind_c().to_owned(),
         (count, false, _) => CString::new(plx_platform::i18n::msg::browse_collection_meta(&plx_ui::fmt::collection_count(collection.subtype.as_deref(), count)))
             .unwrap_or_default(),
     }
+}
+
+fn card_mark(collection: &Collection, item: &PmsMovie) -> String {
+    if collection.id.group == Source::Playlists { return item.title.clone(); }
+    member_label(item)
 }
 
 pub fn member_label(item: &PmsMovie) -> String {
@@ -251,7 +263,7 @@ impl<'a> Members<'a> {
     fn elem_at(&self, index: usize) -> Option<u32> {
         if index >= self.collection.shown() { return None; }
         if let Some(elem) = self.projected(index) { return Some(elem); }
-        Some(self.collection.item(index).and_then(|item| self.cards.elem_for(item.sid, &item.rk))
+        Some(self.collection.item(index).and_then(|item| self.cards.elem_for(item.sid, Collection::card_key(item)))
             .unwrap_or_else(|| hole_elem(index)))
     }
 
@@ -271,7 +283,7 @@ impl<'a> Members<'a> {
     fn label_at(&self, index: usize) -> std::borrow::Cow<'a, str> {
         match self.proj.label(index).filter(|_| self.fresh()) {
             Some(label) => std::borrow::Cow::Borrowed(label),
-            None => std::borrow::Cow::Owned(self.collection.item(index).map(member_label).unwrap_or_default()),
+            None => std::borrow::Cow::Owned(self.collection.item(index).map(|item| card_mark(self.collection, item)).unwrap_or_default()),
         }
     }
 }
@@ -351,6 +363,7 @@ pub struct CollectionScreen {
     /// Presentation, not logical state — its motion is in the canon, its content is the store's.
     stack: Stack<Sec>,
     teardown_closed: bool,
+    shuffle_requested: Option<u32>,
     ground: PageGround,
     ground_seeded: bool,
 }
@@ -363,6 +376,11 @@ impl LogicalState for CollectionScreen {
             .bool(page.header_marked).bool(page.return_pending)
             .u32(page.cards.next).seq(page.cards.len());
         for key in &page.cards.keys { c.u32(key.sid.raw() as u32).str(&key.rk).u32(key.elem); }
+        if page.id.group != Source::Collection {
+            c.str(if page.id.group == Source::Playlist { "playlist" } else { "playlists" })
+                .str(&page.id.thumb).bool(self.shuffle_requested.is_some());
+            if let Some(request) = self.shuffle_requested { c.u32(request); }
+        }
         self.stack.write(c);
     }
     fn probe(&self, out: &mut String) {
@@ -392,7 +410,13 @@ impl Page {
         self.meta = (meta_key(collection), meta_line(collection));
         self.summary_more = !collection.summary.is_empty() && summary_view(&collection.summary, measure).truncates(TEXT_W);
         self.links_c.clear();
-        if self.summary_more && collection.shown() > 0 {
+        if self.id.group == Source::Playlists {
+            let group = if collection.status == CollectionStatus::Failed { STATUS_GROUP } else { GRID_GROUP };
+            use plx_ui::page_regions::{Arrival, PageRegions};
+            PageRegions { header: None, content: &[group], rail: None, back_walks_header: false,
+                arrival: Arrival::Content, pending: None }.links(&mut self.links_c);
+        }
+        if (self.summary_more || self.id.group == Source::Playlist) && collection.shown() > 0 {
             self.links_c.push(Link { from: HEADER_GROUP, dir: Dir::Down, to: GRID_GROUP });
             self.links_c.push(Link { from: GRID_GROUP, dir: Dir::Up, to: HEADER_GROUP });
         }
@@ -412,7 +436,7 @@ impl Page {
         }
         let rows: Vec<(usize, &PmsMovie)> = ranges.iter().flat_map(|r| r.clone())
             .filter_map(|i| collection.item(i).map(|item| (i, item))).collect();
-        let keys = self.cards.intern_all(rows.iter().map(|(_, item)| (item.sid, item.rk.as_str())), "collection");
+        let keys = self.cards.intern_all(rows.iter().map(|(_, item)| (item.sid, Collection::card_key(item))), "collection");
         // A member key must never reach the hole range; 0x4000_0000 minted keys is far beyond any
         // session, so this is the loud failure of an impossible state, not a limit.
         assert!(self.cards.next <= HOLE_ELEM_BASE, "collection element-key space reached the hole range");
@@ -426,7 +450,7 @@ impl Page {
                     Some(((_, item), key)) => {
                         proj.index.entry(key).or_insert(i);
                         run.elems.push(key);
-                        run.labels.push(member_label(item));
+                        run.labels.push(card_mark(collection, item));
                     }
                     None => { run.elems.push(hole_elem(i)); run.labels.push(String::new()); }
                 }
@@ -509,6 +533,10 @@ impl Page {
 
     /// The header's focus rect — its text column — scrolled with the document: the header is the
     /// top of one page with the grid, not a band pinned over it.
+    fn shuffle_rect(scroll: f32) -> Rect {
+        Rect::new(COL_X, HEADER_TOP + SUMMARY_DY - scroll, 320.0, 62.0)
+    }
+
     fn header_rect(scroll: f32) -> Rect {
         Rect::new(COL_X, HEADER_TOP - scroll, TEXT_W, ART_H)
     }
@@ -549,7 +577,12 @@ impl Page {
                 fan_name, theme::CARD_RING_RAD, false, 1.0, 0.0);
         }
         if collection.status == CollectionStatus::Ready {
-            ui_cards::draw_heading(p, plx_ui::fmt::collection_noun(collection.subtype.as_deref()), order_note(collection),
+            let heading = match collection.id.group {
+                Source::Playlists => plx_platform::i18n::msg::collections_page_playlist_heading(),
+                Source::Playlist => plx_platform::i18n::msg::collections_page_playlist_order(),
+                Source::Collection => plx_ui::fmt::collection_noun(collection.subtype.as_deref()),
+            };
+            ui_cards::draw_heading(p, heading, order_note(collection),
                 MARGIN_X, ITEMS_HEADING_Y + dy, SCR_W - 2.0 * MARGIN_X, measure);
         }
         let title = measure.fit_line(name, TEXT_W, theme::size::DISPLAY, true);
@@ -564,6 +597,16 @@ impl Page {
         };
         Label::new(meta.as_ptr(), theme::size::LABEL, theme::TEXT_SECONDARY)
             .v(VAlign::CapTop).draw(p, Rect::new(COL_X, meta_y, TEXT_W, 0.0));
+        if collection.id.group == Source::Playlist && collection.status == CollectionStatus::Ready {
+            let label = match collection.shuffle {
+                ShuffleState::Failed => plx_platform::i18n::msg::collections_page_playlist_shuffle_failed_c(),
+                ShuffleState::Pending => plx_platform::i18n::msg::collections_page_playlist_shuffling_c(),
+                _ => plx_platform::i18n::msg::collections_page_playlist_shuffle_c(),
+            };
+            let rect = Self::shuffle_rect(scroll);
+            widgets::Button::new(label.as_ptr(), theme::size::BODY, rect).focused(focused).draw(&Env::inert(), p);
+            return;
+        }
         if collection.summary.is_empty() { return; }
         let view = summary_view(&collection.summary, measure);
         let h = view.measure_h(TEXT_W);
@@ -618,8 +661,9 @@ impl<H: ContentLike + CollectionLike> StackPage<H> for Page {
         let collection = self.collection(cx);
         let head = collection.is_some_and(CollectionScreen::shows_head);
         let failed = collection.is_some_and(|c| c.status == CollectionStatus::Failed);
-        out.push(SectionSpec::new(Sec::Head, Kind::Custom { height: GRID_TOP, focusable: head && self.summary_more }, HEADER_GROUP).ranked(1));
-        out.push(SectionSpec::new(Sec::Items, Kind::Grid { spec: GridSpec::new(GRID_TOP, CONTENT_TOP) }, GRID_GROUP));
+        let grid_top = if self.id.group == Source::Playlists { PLAYLIST_GRID_TOP } else { GRID_TOP };
+        out.push(SectionSpec::new(Sec::Head, Kind::Custom { height: grid_top, focusable: head && (self.summary_more || collection.is_some_and(|c| c.id.group == Source::Playlist && c.status == CollectionStatus::Ready)) }, HEADER_GROUP).ranked(1));
+        out.push(SectionSpec::new(Sec::Items, Kind::Grid { spec: GridSpec::new(grid_top, if self.id.group == Source::Playlists { PLAYLIST_GRID_TOP } else { CONTENT_TOP }) }, GRID_GROUP));
         let retry = if failed {
             CollectionScreen::status_overlay(collection, cx.tick.ms, cx.measure).action_frame_measured(cx.measure)
         } else { None };
@@ -650,6 +694,7 @@ impl<H: ContentLike + CollectionLike> StackPage<H> for Page {
 
     fn card_has_menu(&self, cx: &Cx<'_, H>, _k: Sec, elem: &u32) -> bool {
         let Some(collection) = self.collection(cx) else { return false };
+        if collection.id.group == Source::Playlists { return false; }
         self.item_index(collection, *elem)
             .and_then(|index| collection.item(index))
             .is_some_and(crate::registry::item_has_menu)
@@ -657,6 +702,7 @@ impl<H: ContentLike + CollectionLike> StackPage<H> for Page {
 
     fn focus_rect(&self, _cx: &Cx<'_, H>, k: Sec, section: Rect) -> Rect {
         match k {
+            Sec::Head if self.id.group == Source::Playlist => Self::shuffle_rect(-section.y),
             Sec::Head => Self::header_rect(-section.y),
             Sec::Items | Sec::Status => section,
         }
@@ -675,6 +721,10 @@ impl<H: ContentLike + CollectionLike> StackPage<H> for Page {
         let collection = self.collection(f.cx);
         let on = |elem: u32| f.focus.current.is_some_and(|key| key.entry == self.entry && key.elem == elem);
         match k {
+            Sec::Head if self.id.group == Source::Playlists => {
+                ui_cards::draw_heading(p, plx_platform::i18n::msg::collections_page_playlist_heading(), "", MARGIN_X,
+                    PLAYLIST_GRID_TOP - 62.0 - scroll, SCR_W - 2.0 * MARGIN_X, f.measure);
+            }
             Sec::Head => if let Some(collection) = collection.filter(|c| CollectionScreen::shows_head(c)) {
                 self.draw_header(p, collection, on(HEADER_ELEM), H::back_to(f.cx).as_deref(), f.measure, scroll);
             },
@@ -709,7 +759,7 @@ impl CollectionScreen {
                 summary_lift: plx_ui::text_lift::TextLift::new() },
             // A page that leaves focus (a menu over it, a pointer gone) rests at the top.
             stack: Stack::new(entry).hold_hint().home_when_unfocused(true),
-            teardown_closed: false, ground: PageGround::new(), ground_seeded: false,
+            shuffle_requested: None, teardown_closed: false, ground: PageGround::new(), ground_seeded: false,
         }
     }
 
@@ -882,8 +932,17 @@ impl CollectionScreen {
         measure: &dyn plx_machine::machine::Measure) -> StatusOverlay<'a> {
         match collection.map(|c| c.status).unwrap_or(CollectionStatus::Loading) {
             // placeholder-exempt: builds the value only; counted where drawn (StatusOverlay::draw_geometry, Working)
+            CollectionStatus::Loading if collection.is_some_and(|c| c.id.group != Source::Collection) =>
+                StatusOverlay::new(Self::status_frame(), plx_platform::i18n::msg::browse_library_loading_c(), StatusKind::Working).phase(tick),
             CollectionStatus::Loading => StatusOverlay::new(Self::status_frame(), plx_platform::i18n::msg::browse_collection_loading_c(), StatusKind::Working).phase(tick),
+            CollectionStatus::Empty if collection.is_some_and(|c| c.id.group == Source::Playlists) =>
+                StatusOverlay::new(Self::status_frame(), plx_platform::i18n::msg::collections_page_playlist_empty_directory_c(), StatusKind::Empty),
+            CollectionStatus::Empty if collection.is_some_and(|c| c.id.group == Source::Playlist) =>
+                StatusOverlay::new(Self::status_frame(), plx_platform::i18n::msg::collections_page_playlist_empty_members_c(), StatusKind::Empty),
             CollectionStatus::Empty => StatusOverlay::new(Self::status_frame(), plx_platform::i18n::msg::browse_collection_empty_c(), StatusKind::Empty),
+            CollectionStatus::Unavailable if collection.is_some_and(|c| c.id.group != Source::Collection) =>
+                StatusOverlay::new(Rect::FULL, plx_platform::i18n::msg::collections_page_playlist_unavailable_c(), StatusKind::Failed)
+                    .page(plx_ui::icons::Icon::PersonBadgeXmark),
             CollectionStatus::Unavailable => StatusOverlay::new(Rect::FULL, plx_platform::i18n::msg::browse_collection_unavailable_c(), StatusKind::Failed)
                 .page(plx_ui::icons::Icon::PersonBadgeXmark)
                 .reason(plx_platform::i18n::msg::browse_collection_unavailable_reason_c()),
@@ -902,6 +961,15 @@ impl CollectionScreen {
     /// OK on the header: the summary read in full, behind the `MORE` mark. Person's gate — the
     /// sheet is offered exactly when the mark is drawn, and both read `summary_more`.
     fn activate_header<H: ContentLike + CollectionLike>(&mut self, cx: &Cx<'_, H>, fx: &mut Effects<'_, H>) {
+        if self.page.id.group == Source::Playlist {
+            if let Some(c) = self.collection(cx).filter(|c| c.status == CollectionStatus::Ready) {
+                let generation = c.generation();
+                self.shuffle_requested = Some(generation);
+                fx.push(plx_machine::machine::Fx::App(AppFx::Store(plx_data::stores::StoreId::Collection,
+                    plx_data::stores::StoreCmd::Collection(CollectionCmd::Shuffle { generation }))));
+            }
+            return;
+        }
         self.page.header_marked = true;
         if self.collection(cx).is_some() && self.page.summary_more {
             fx.push(plx_machine::machine::Fx::App(AppFx::Content(ContentReq::Panel(
@@ -965,6 +1033,17 @@ impl<H: ContentLike + CollectionLike> Machine<H> for CollectionScreen {
             }
             _ => {}
         }
+        if self.page.id.group == Source::Playlists {
+            let strip_key = match ev {
+                ScreenEvent::Activate(elem) => Some(*elem),
+                ScreenEvent::PressCommit(_) => cx.focus.current.filter(|k| k.entry == self.entry()).map(|k| k.elem),
+                _ => None,
+            };
+            if let Some(key) = strip_key.filter(|&k| k >= plx_ui::dispatch::STRIP_BASE) {
+                fx.push(plx_machine::machine::Fx::App(AppFx::Content(ContentReq::Strip(key))));
+                return Handled::Yes;
+            }
+        }
         let card = match self.stack.on(&self.page, ev, cx, fx) {
             Some(StackEvent::Card(_, card)) => Some(card),
             _ => None,
@@ -1014,14 +1093,20 @@ impl<H: ContentLike + CollectionLike> Machine<H> for CollectionScreen {
                 if let Some(CardEvent::Activate(elem)) = card {
                     let key = plx_machine::machine::FocusKey { entry: self.entry(), elem };
                     if let Some(item) = self.focused_item(Some(key), cx) {
-                        fx.push(plx_machine::machine::Fx::App(AppFx::Content(ContentReq::Push(
-                            ContentArg::Detail { sid: item.sid, rk: item.rk.clone() }))));
+                        self.shuffle_requested = None;
+                        let request = match self.page.id.group {
+                            Source::Playlists => ContentReq::Push(ContentArg::Collection(CollectionRef::playlist(item.sid, &item.rk, &item.title, &item.thumb))),
+                            Source::Playlist => ContentReq::Play { play: super::registry::PlayIntent::Movie {
+                                item: item.clone(), version: None }, resume_ns: plx_data::metadata::resume_ns(item.resume_ms, item.dur_ns / 1_000_000) },
+                            Source::Collection => ContentReq::Push(ContentArg::Detail { sid: item.sid, rk: item.rk.clone() }),
+                        };
+                        fx.push(plx_machine::machine::Fx::App(AppFx::Content(request)));
                     }
                 }
                 Handled::Yes
             }
             ScreenEvent::PressHold(_) => {
-                if matches!(card, Some(CardEvent::Hold(_))) {
+                if self.page.id.group != Source::Playlists && matches!(card, Some(CardEvent::Hold(_))) {
                     fx.push(plx_machine::machine::Fx::App(AppFx::Content(ContentReq::ItemMenu)));
                     Handled::Yes
                 } else { Handled::No }
@@ -1037,6 +1122,15 @@ impl<H: ContentLike + CollectionLike> Machine<H> for CollectionScreen {
                 self.page.return_pending = false; Handled::No
             }
             ScreenEvent::StoreChanged(ord, _) if *ord == plx_data::stores::StoreId::Collection.ord() => {
+                if let (Some(want), Some(c)) = (self.shuffle_requested, self.collection(cx)) {
+                    if want != c.generation() || matches!(c.shuffle, ShuffleState::Failed) {
+                        self.shuffle_requested = None;
+                    } else if let ShuffleState::Ready(item) = &c.shuffle {
+                        let play = super::registry::PlayIntent::Movie { item: (**item).clone(), version: None };
+                        self.shuffle_requested = None;
+                        fx.push(plx_machine::machine::Fx::App(AppFx::Content(ContentReq::Play { play, resume_ns: 0 })));
+                    }
+                }
                 if self.page.return_pending {
                     let settled = cx.focus.current.filter(|key| key.entry == self.entry())
                         .is_some_and(|key| self.collection(cx).is_some_and(|c| !self.page.awaiting_restore(c, key.elem)));
@@ -1044,7 +1138,9 @@ impl<H: ContentLike + CollectionLike> Machine<H> for CollectionScreen {
                 }
                 Handled::Yes
             }
+            ScreenEvent::WillLeave(Leave::Deeper) => { self.shuffle_requested = None; Handled::No }
             ScreenEvent::WillLeave(Leave::ForGood) | ScreenEvent::Unmount => {
+                self.shuffle_requested = None;
                 if self.collection(cx).is_some() && !self.teardown_closed {
                     self.teardown_closed = true;
                     fx.push(plx_machine::machine::Fx::App(AppFx::Store(plx_data::stores::StoreId::Collection,
@@ -1131,7 +1227,7 @@ mod tests {
 
     pub(super) fn item(rk: &str) -> PmsMovie { PmsMovie { rk: rk.into(), title: rk.into(), ..Default::default() } }
     pub(super) fn set() -> CollectionRef {
-        CollectionRef { sid: plx_plex::plex::ServerId::UNSET, rk: "50001".into(), sec: 1, tag: 7, name: "Set".into() }
+        CollectionRef { group: Default::default(), thumb: String::new(), sid: plx_plex::plex::ServerId::UNSET, rk: "50001".into(), sec: 1, tag: 7, name: "Set".into() }
     }
     fn seeded() -> (plx_data::stores::collection::CollectionStore, CollectionScreen) {
         let mut store = plx_data::stores::collection::CollectionStore::default();
@@ -1251,6 +1347,56 @@ mod tests {
         let out = step(&mut screen, ScreenEvent::PressCommit(plx_machine::machine::PressId(1)), &cx(store.view(), Some(key)));
         assert!(out.iter().any(|e| matches!(&e.fx, plx_machine::machine::Fx::App(AppFx::Content(
             ContentReq::Push(ContentArg::Detail { rk, .. }))) if rk == "b")));
+    }
+
+    #[test]
+    fn personal_playlist_remote_ok_opens_list_and_plays_exact_duplicate() {
+        use plx_plex::plex::collections::PlaylistStart;
+        let mut store = plx_data::stores::collection::CollectionStore::default();
+        let dir = CollectionRef { group: Source::Playlists, ..CollectionRef::by_rk(set().sid, "", 0, "Playlists") };
+        store.run(CollectionCmd::Open { target: CollectionTarget { id: dir.clone(), want: PAGE_SIZE } },
+            &plx_plex::plex::ClientKeys::default());
+        store.install_for_test(vec![PmsMovie { title: "Family picks".into(), thumb: "/custom/55".into(), dur_ns: 3_600_000_000_000, ..item("55") }], CollectionStatus::Ready);
+        let mut screen = CollectionScreen::new(EntryId(9), dir);
+        screen.page.sync(store.view().current().unwrap(), &FixtureMeasure);
+        let click = |screen: &mut CollectionScreen, store: &plx_data::stores::collection::CollectionStore, index| {
+            tick_at(screen, store, None, 16);
+            let key = screen.key_at(store.view().current().unwrap(), index);
+            step(screen, ScreenEvent::PressCommit(plx_machine::machine::PressId(1)), &cx(store.view(), Some(key)))
+        };
+        let c = store.view().current().unwrap();
+        assert_eq!(screen.page.members(c).label_at(0), "Family picks", "playlist name drawn on the card");
+        let out = click(&mut screen, &store, 0);
+        let id = out.iter().find_map(|e| match &e.fx {
+            plx_machine::machine::Fx::App(AppFx::Content(ContentReq::Push(ContentArg::Collection(id)))) => Some(id.clone()),
+            _ => None,
+        }).unwrap();
+        assert_eq!((id.group, id.rk.as_str()), (Source::Playlist, "55"));
+        store.run(CollectionCmd::Open { target: CollectionTarget { id: id.clone(), want: PAGE_SIZE } },
+            &plx_plex::plex::ClientKeys::default());
+        assert_eq!(store.view().current().unwrap().thumb, "/custom/55");
+        let rows = (0..2).map(|index| PmsMovie { playlist: Some(Box::new(PlaylistStart { id: 55, index, queued: None, entry: format!("entry-{index}") })),
+            ..item("22") }).collect();
+        store.install_for_test(rows, CollectionStatus::Ready);
+        let mut members = CollectionScreen::new(EntryId(9), id);
+        members.page.sync(store.view().current().unwrap(), &FixtureMeasure);
+        let out = step(&mut members, ScreenEvent::Activate(HEADER_ELEM), &cx(store.view(), None));
+        assert!(out.iter().any(|e| matches!(&e.fx, plx_machine::machine::Fx::App(AppFx::Store(
+            _, plx_data::stores::StoreCmd::Collection(CollectionCmd::Shuffle { .. }))))));
+        let mut sections = Vec::new();
+        let view = cx(store.view(), None);
+        members.page.sections(&view, &mut sections);
+        assert!(sections.iter().any(|s| matches!(s.kind, Kind::Custom { focusable: true, .. })));
+        store.edit_for_test(|c| c.shuffle = ShuffleState::Ready(Box::new(item("server-choice"))));
+        let changed = || ScreenEvent::StoreChanged(plx_data::stores::StoreId::Collection.ord(), 2);
+        let played = |out: &[plx_machine::machine::Stamped<CollectionHost>]| out.iter().any(|e|
+            matches!(&e.fx, plx_machine::machine::Fx::App(AppFx::Content(ContentReq::Play {
+                play: super::super::registry::PlayIntent::Movie { item, .. }, resume_ns: 0 })) if item.rk == "server-choice"));
+        assert!(played(&step(&mut members, changed(), &cx(store.view(), None))));
+        assert!(!played(&step(&mut members, changed(), &cx(store.view(), None))), "play once per activation");
+        let out = click(&mut members, &store, 1);
+        assert!(out.iter().any(|e| matches!(&e.fx, plx_machine::machine::Fx::App(AppFx::Content(ContentReq::Play {
+            play: super::super::registry::PlayIntent::Movie { item, .. }, .. })) if item.playlist.as_ref().unwrap().index == 1)));
     }
 
     /// The hold hint on a Collection page (`ui::hold_hint`): the first time it teaches

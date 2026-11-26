@@ -529,6 +529,22 @@ pub(crate) fn content_requests(app: &mut App, fr: &mut Frame) {
         // A delayed effect cannot navigate for an instance that has already been covered.
         if app.pages.nav.input_owner() != Some(InputOwner::Entry(entry)) { continue; }
         match request {
+            ContentReq::Strip(key) => {
+                if !app.route().is_playlists() { continue; }
+                use plx_ui::widgets::*;
+                let tab = match key {
+                    TAB_KEY_CHIP => { chip_activate(&mut app.pages); continue; }
+                    TAB_KEY_HOME => { bridge::nav_home_pill(&mut app.pages, &mut app.bridge, Some(ret)); continue; }
+                    TAB_KEY_MOVIES => HomeTab::Movies,
+                    TAB_KEY_SHOWS => HomeTab::Shows,
+                    TAB_KEY_SEARCH => HomeTab::Search,
+                    TAB_KEY_WATCHLIST => HomeTab::Watchlist,
+                    _ => continue,
+                };
+                if home_tab_available(app.bridge.browse_directory(), tab) {
+                    bridge::nav_tab(&mut app.pages, &mut app.bridge, tab, None, Some(ret));
+                }
+            }
             ContentReq::Push(arg) => {
                 halt_preview(app);
                 // The page's own press frame captured `ret`, so it rides the request rather than
@@ -543,7 +559,12 @@ pub(crate) fn content_requests(app: &mut App, fr: &mut Frame) {
             }
             ContentReq::Back => {
                 halt_preview(app);
-                content_back(&mut app.pages, source, entry, ret);
+                if app.route().is_playlists() {
+                    bridge::nav_tab(&mut app.pages, &mut app.bridge, HomeTab::Home,
+                        Some(super::chrome::Pill::Playlists), Some(ret));
+                } else {
+                    content_back(&mut app.pages, source, entry, ret);
+                }
             }
             ContentReq::Play { play, resume_ns } => {
                 let mounted = bridge::player(&app.pages).is_some();
@@ -916,7 +937,7 @@ mod search_action_tests {
             tag: 7 });
         let req = |sid, rk: &str, tag| SearchReq::Collection { sid, rk: rk.into(), tag };
         assert!(search_target(&hit, &req(a, "50007", 7)) == Some(AppArg::Content(ContentArg::Collection(
-            plx_plex::plex::collections::CollectionRef { sid: a, rk: "50007".into(), sec: 1, tag: 7, name: "Shorts".into() }))));
+            plx_plex::plex::collections::CollectionRef { group: Default::default(), thumb: String::new(), sid: a, rk: "50007".into(), sec: 1, tag: 7, name: "Shorts".into() }))));
         assert!(search_target(&hit, &req(b, "50007", 7)).is_none(), "another server's key");
         assert!(search_target(&hit, &req(a, "50008", 7)).is_none(), "a stale selection");
         assert!(search_target(&hit, &SearchReq::Detail { sid: a, rk: "50007".into() }).is_none(),

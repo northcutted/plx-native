@@ -700,7 +700,8 @@ fn content_png(url: &str) -> Option<plx_data::hudpacks::Sha> {
 /// for the pixels they will draw; the logical box stays the caller's.
 fn transcode_request(c: &plx_plex::plex::Client, path: &str, w: c_int, h: c_int, png: bool) -> String {
     let n = plx_base::surface::render_scale() as i64;
-    c.image_transcode_path(path, w as i64 * n, h as i64 * n, png)
+    let (w, h) = (i64::from(w) * n, i64::from(h) * n);
+    c.playlist_image_request(path, w, h).unwrap_or_else(|| c.image_transcode_path(path, w, h, png))
 }
 
 /// A refused key logs ONCE per process, with both ceilings and the length that missed them.
@@ -1866,6 +1867,18 @@ struct Loaded<T> {
     transient: bool,
 }
 
+/// The generated request has exactly one width and height, plus authentication. Persist
+/// only the validated resource and dimensions, scoped to the server and signed-in profile.
+fn playlist_cover_key(namespace: &str, profile: &str, request: &str) -> Option<plx_platform::imgcache::DiskKey> {
+    if profile.is_empty() { return None; }
+    let id = plx_plex::plex::collections::playlist_composite_id(request)?;
+    let (resource, query) = request.split_once('?')?;
+    let size = |name: &str| query.split('&').filter_map(|pair| pair.split_once('='))
+        .find(|(key, _)| *key == name)?.1.parse::<u32>().ok();
+    plx_platform::imgcache::classify_baked(&format!("{namespace}|profile:{profile}"), "playlist-cover",
+        &id.to_string(), resource, size("width")?, size("height")?)
+}
+
 /// The shared disk-first/fetch path for one built request. A disk hit that does not decode is
 /// removed and falls through to the network; only a fetched response that DECODES is written to
 /// disk, so a bad answer never replaces a good image.
@@ -1874,52 +1887,90 @@ fn load_art<T>(
     srv: ServerId,
     key_s: &str,
     cache_gen: u64,
+    token_gen: u32,
     mut decode: impl FnMut(&[u8]) -> Option<T>,
 ) -> Loaded<T> {
     let mut out = Loaded { art: None, from_disk: false, stale: None, transient: false };
+    let playlist = plx_plex::plex::collections::playlist_composite_id(key_s);
+    let profile = playlist.map(|_| plx_plex::plex::session::current_profile_key());
+    let current = || workers::current(client, cache_gen, token_gen, profile.as_deref());
     let disk = if crate::dev::scenarios::imagecache_bypass_armed() {
         None
+    } else if let Some(profile) = &profile {
+        if !current() { return out; }
+        playlist_cover_key(&disk_namespace(client), profile, key_s)
     } else {
         plx_platform::imgcache::classify(&disk_namespace(client), key_s)
     };
+    let mut stale_cover = None;
     if let Some(k) = &disk {
         if let Some(cached) = plx_platform::imgcache::read_at(cache_gen, k) {
-            match decode(&cached.bytes) {
-                Some(art) => {
-                    out.art = Some(art);
-                    out.from_disk = true;
-                    if cached.stale {
-                        out.stale = Some(k.clone());
-                    }
-                    return out;
-                }
-                None => plx_platform::imgcache::remove_at(cache_gen, k),
+            // Refresh a stale playlist on this worker so its fallback and profile guard apply.
+            if playlist.is_some() && cached.stale {
+                stale_cover = Some(cached.bytes);
+            } else if let Some(art) = decode(&cached.bytes) {
+                out.art = Some(art);
+                out.from_disk = true;
+                out.stale = cached.stale.then(|| k.clone());
+                return out;
+            } else {
+                plx_platform::imgcache::remove_at(cache_gen, k);
             }
         }
     }
-    if cache_gen != plx_platform::imgcache::generation() {
+    if !current() {
         return out;
     }
     FETCHES.fetch_add(1, Ordering::Relaxed);
-    match client.fetch_built_outcome(key_s) {
-        plx_plex::plex::ArtFetch::Bytes(b) if !b.is_empty() => {
-            out.art = decode(&b);
-            if out.art.is_some() {
-                if let Some(k) = &disk {
-                    plx_platform::imgcache::write_at(cache_gen, k, &b);
-                }
-            }
+    let response = client.fetch_built_outcome(key_s);
+    let mut accept = |bytes: &[u8]| {
+        let art = decode(bytes)?;
+        if let Some(k) = &disk {
+            if current() { plx_platform::imgcache::write_at(cache_gen, k, bytes); }
         }
+        Some(art)
+    };
+    match &response {
+        plx_plex::plex::ArtFetch::Bytes(b) if !b.is_empty() => out.art = accept(b),
         plx_plex::plex::ArtFetch::Bytes(_) => {
             out.transient = true;
             warn_fetch_failed(srv, ArtFail::Empty);
         }
         outcome => {
-            out.transient = is_transient(&outcome);
+            out.transient = is_transient(outcome);
             warn_fetch_failed(srv, ArtFail::NoResponse);
         }
     }
+    if out.art.is_some() { return out; }
+    let Some(id) = playlist else { return out };
+    if !current() || matches!(response, plx_plex::plex::ArtFetch::Status(401 | 403)) { return out; }
+    // PMS sometimes lists a composite it cannot render. File a usable member poster under
+    // the same cover key so later visits do not repeat the lookup.
+    match client.playlist_page(Some(id), 0, 8) {
+        plx_plex::plex::collections::CollectionOutcome::Ok(page) => {
+            if let Some(thumb) = page.metadata.iter().find_map(playlist_member_poster) {
+                let path = client.image_transcode_path(thumb, 250, 375, false);
+                out.art = fetch_image(client, &path).and_then(|bytes| accept(&bytes));
+            }
+        }
+        plx_plex::plex::collections::CollectionOutcome::Denied |
+        plx_plex::plex::collections::CollectionOutcome::Missing => return out,
+        plx_plex::plex::collections::CollectionOutcome::Transport => out.transient = true,
+    }
+    if out.art.is_none() && current() {
+        out.art = stale_cover.as_deref().and_then(decode);
+        out.from_disk = out.art.is_some();
+    }
+    if out.art.is_some() { out.transient = false; }
     out
+}
+
+fn playlist_member_poster(row: &plx_plex::plex::Metadata) -> Option<&str> {
+    match row.kind.as_str() {
+        "episode" => [&row.parent_thumb, &row.grandparent_thumb, &row.thumb],
+        "movie" => [&row.thumb, &row.art, &row.parent_thumb],
+        _ => return None,
+    }.into_iter().map(String::as_str).find(|path| !path.is_empty())
 }
 
 /// The pure half of [`refetch_art`]: what a server's answer yields. The decoded art (`None` for a
@@ -2036,7 +2087,7 @@ impl fan::FanIo for WorkerFanIo<'_> {
         // on screen (or on disk) is a cache hit rather than a second transcode at another size.
         let (w, h) = plx_ui::widgets::POSTER_RES;
         let path = transcode_request(self.client, thumb, w, h, false);
-        let loaded = load_art(self.client, self.srv, &path, self.cache_gen, |b| {
+        let loaded = load_art(self.client, self.srv, &path, self.cache_gen, self.token_gen, |b| {
             plx_gfx::img::img_decode_owned(b).map(|(w, h, px)| fan::Rgba { w, h, px })
         });
         match loaded.art {
@@ -2189,7 +2240,7 @@ fn poster_worker() {
                     fan::Got::Transient => transient = true,
                 }
             } else {
-                let loaded = load_art(client, srv, &key_s, cache_gen, |b| {
+                let loaded = load_art(client, srv, &key_s, cache_gen, token_gen, |b| {
                     let (mut dw, mut dh) = (0, 0);
                     let p = img::img_decode_rgba(b.as_ptr(), b.len() as c_int, &mut dw, &mut dh);
                     (!p.is_null()).then_some((p, dw, dh))
@@ -2572,6 +2623,88 @@ mod tests {
         );
     }
 
+    #[test]
+    fn personal_playlist_composite_uses_its_image_endpoint_and_member_art_is_portrait() {
+        let (_g, sid, _) = one_server();
+        let path = "/playlists/77/composite/1700000000";
+        let key = key_for(sid, path, 250, 375, 0);
+        assert!(key.starts_with("/playlists/77/composite/1700000000?width="));
+        assert!(key.contains("&height=") && key.contains("&X-Plex-Token="));
+        assert_eq!(key, key_for(sid, &format!("{path}?width=400&height=400"), 250, 375, 0));
+        let mut row: plx_plex::plex::Metadata = serde_json::from_value(serde_json::json!({
+            "type":"episode","thumb":"/still","grandparentThumb":"/show","parentThumb":"/season"
+        })).unwrap();
+        assert_eq!(playlist_member_poster(&row), Some("/season"));
+        row.parent_thumb.clear();
+        assert_eq!(playlist_member_poster(&row), Some("/show"));
+    }
+
+    #[test]
+    fn playlist_covers_key_on_profile_source_stamp_and_size() {
+        let request = "/playlists/77/composite/123?width=250&height=375&X-Plex-Token=test";
+        let key = playlist_cover_key("server", "owner", request).unwrap();
+        assert_eq!(Some(key.clone()), playlist_cover_key("server", "owner", &request.replace("Token=test", "Token=rotated")));
+        assert_ne!(Some(key.clone()), playlist_cover_key("server", "child", request));
+        assert_ne!(Some(key.clone()), playlist_cover_key("other", "owner", request));
+        assert_ne!(Some(key.clone()), playlist_cover_key("server", "owner", &request.replace("123?", "124?")));
+        assert_ne!(Some(key), playlist_cover_key("server", "owner", &request.replace("250", "500")));
+        assert!(playlist_cover_key("server", "", request).is_none());
+    }
+
+    #[test]
+    #[cfg(feature = "hostsim")]
+    fn personal_playlist_generated_cover_and_fallback_survive_a_cold_read() {
+        use std::io::{BufRead, BufReader, Write};
+        use plx_plex::plex::session;
+        let (_registry, _, _) = one_server();
+        let old = session::current_snapshot();
+        struct Restore(std::sync::Arc<session::CurrentProfile>);
+        impl Drop for Restore {
+            fn drop(&mut self) { session::publish_profile_for_test(self.0.user.clone(), self.0.generation); }
+        }
+        let _restore = Restore(old);
+        session::publish_profile_for_test(Some(session::UserRef { uuid: "cover-fixture".into(), ..Default::default() }), 3);
+        assert!(plx_net::net::global_init());
+        for fallback in [false, true] {
+            let listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+            let port = listener.local_addr().unwrap().port();
+            let sid = plx_plex::plex::register_for_test("cover", "127.0.0.1", port.into(), "test", "fixture");
+            let client = plx_plex::plex::client_for(sid).unwrap();
+            let path = format!("/playlists/{port}/composite/7");
+            let request = client.playlist_image_request(&path, 250, 375).unwrap();
+            let generation = plx_platform::imgcache::generation();
+            let key = playlist_cover_key(&disk_namespace(client), "cover-fixture", &request).unwrap();
+            plx_platform::imgcache::remove_at(generation, &key);
+            let server = std::thread::spawn(move || {
+                let replies = if fallback {
+                    vec![("composite", "404 Not Found", ""), ("/items?", "200 OK",
+                        r#"{"MediaContainer":{"Metadata":[{"type":"movie","thumb":"/poster"}]}}"#),
+                        ("transcode?", "200 OK", "image")]
+                } else { vec![("composite", "200 OK", "image")] };
+                for (endpoint, status, body) in replies {
+                    let (mut socket, _) = plx_base::testnet::accept_client(&listener, plx_base::testnet::CLIENT_WAIT);
+                    socket.set_read_timeout(Some(plx_base::testnet::CLIENT_WAIT)).unwrap();
+                    let mut reader = BufReader::new(&socket);
+                    let mut line = String::new();
+                    reader.read_line(&mut line).unwrap();
+                    assert!(line.contains(endpoint));
+                    loop {
+                        line.clear();
+                        if reader.read_line(&mut line).unwrap() == 0 || line == "\r\n" { break; }
+                    }
+                    write!(socket, "HTTP/1.1 {status}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).unwrap();
+                }
+            });
+            let load = || load_art(client, sid, &request, generation, client.token_gen(), |bytes| (bytes == b"image").then_some(()));
+            let cold = load();
+            server.join().unwrap();
+            assert!(cold.art.is_some() && !cold.from_disk);
+            let warm = load(); // the listener is closed; only the durable key can answer
+            assert!(warm.art.is_some() && warm.from_disk);
+            plx_platform::imgcache::remove_at(generation, &key);
+        }
+    }
+
     /// Only a COLLECTION's composite becomes a fan. Playlists and other PMS objects also have
     /// generated `/composite/` thumbs; rerouting them would list a playlist's ratingKey as a
     /// collection (a 404, so a card with no art at all) instead of drawing the server's picture.
@@ -2579,8 +2712,6 @@ mod tests {
     fn other_composites_keep_the_ordinary_transcode_path() {
         let (_g, sid, _) = one_server();
         for thumb in [
-            "/playlists/77/composite/1700000000",
-            "/playlists/77/composite/1700000000?width=400&height=400",
             "/library/metadata/77/composite/1700000000",
             "/library/sections/2/composite/1700000000",
             "/library/collections/77/composite/1700000000/extra",

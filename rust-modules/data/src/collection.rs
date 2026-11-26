@@ -9,7 +9,7 @@
 
 use plx_machine::job::{Job, Port};
 use plx_machine::machine::{Addr, MachineId, RequestId};
-use plx_plex::plex::collections::{resolve_tag, CollectionOutcome, CollectionRef};
+use plx_plex::plex::collections::{GroupKind, PlaylistStart, resolve_tag, CollectionOutcome, CollectionRef};
 use plx_plex::plex::{ClientKey, ClientKeys, ServerId};
 use crate::pms::{parse_item, PmsMovie};
 use crate::stores::page_cache::{Keep, PageCache, PAGE};
@@ -60,7 +60,15 @@ pub enum CollectionStatus {
     Failed,
 }
 
+pub enum ShuffleState {
+    Idle,
+    Pending,
+    Ready(Box<PmsMovie>),
+    Failed,
+}
+
 pub struct Collection {
+    pub shuffle: ShuffleState,
     /// The identity the page was opened with; `id.rk` is filled in once a tag route resolves.
     pub id: CollectionRef,
     pub title: String,
@@ -87,6 +95,7 @@ pub struct Collection {
     /// Frontier requests left before the next ask. An ask ([`CollectionCmd::Window`] or `Open`)
     /// refills it, so a restore without kept counts reads forward a bounded stretch at a time.
     budget: u8,
+    first_playlist_entry: Option<i64>,
     header_ready: bool,
     /// The client the listing was read through, `None` when its server held none.
     client_key: Option<ClientKey>,
@@ -98,10 +107,11 @@ impl Collection {
     /// A collection opened (or reopened) with nothing landed yet, under the store's request epoch
     /// `generation`: its title is the link's name until the header replaces it.
     fn loading(id: CollectionRef, want: usize, client_key: Option<ClientKey>, generation: u32) -> Self {
-        Self { title: id.name.clone(), id, summary: String::new(), thumb: String::new(),
+        let header_ready = id.group != GroupKind::Collection;
+        Self { shuffle: ShuffleState::Idle, title: id.name.clone(), thumb: id.thumb.clone(), id, summary: String::new(),
             child_count: 0, subtype: None, order: None, pages: PageCache::default(), read: 0, total: 0,
             status: CollectionStatus::Loading, more: true, wanted: 0..want, focus: None, restore: None,
-            budget: FRONTIER_ASK, header_ready: false, client_key, generation }
+            budget: FRONTIER_ASK, first_playlist_entry: None, header_ready, client_key, generation }
     }
 
     /// Whether the header (title, art, summary) has landed — before it, an empty `thumb` is not
@@ -115,10 +125,14 @@ impl Collection {
     /// counts, so the index of every row the user has reached stays the same.
     pub fn shown(&self) -> usize { self.pages.first_index_of(self.read).min(self.total) }
 
+    pub fn card_key(item: &PmsMovie) -> &str {
+        item.playlist.as_ref().map_or(&item.rk, |s| s.entry.as_str())
+    }
+
     /// The index of the loaded row that is `(sid, rk)`, if its page is held. An evicted row has no
     /// index to give until its page is read again.
     pub fn position_of(&self, sid: ServerId, rk: &str) -> Option<usize> {
-        self.pages.loaded_rows().find(|(_, m)| plx_plex::plex::same_item((m.sid, &m.rk), (sid, rk))).map(|(i, _)| i)
+        self.pages.loaded_rows().find(|(_, m)| plx_plex::plex::same_item((m.sid, Self::card_key(m)), (sid, rk))).map(|(i, _)| i)
     }
 
     /// The loaded members inside the window the screen asked for (see [`CollectionCmd::Window`]).
@@ -280,6 +294,13 @@ impl CollectionState {
                 self.current = Some(Collection::loading(target.id, target.want.max(PAGE_SIZE), client_key, self.generation));
                 true
             }
+            CollectionCmd::Shuffle { generation } => {
+                let Some(c) = self.current.as_mut() else { return false };
+                if c.generation != generation || c.id.group != GroupKind::Playlist ||
+                    c.status != CollectionStatus::Ready || matches!(c.shuffle, ShuffleState::Pending) { return false; }
+                c.shuffle = ShuffleState::Pending;
+                true
+            }
             CollectionCmd::Window { wanted, focus, restore } => {
                 let Some(c) = self.current.as_mut() else { return false };
                 let changed = c.wanted != wanted || c.focus != focus || c.restore != restore;
@@ -367,21 +388,29 @@ impl CollectionState {
 
     fn work(&self) -> Option<Work> {
         let c = self.current.as_ref()?;
+        if matches!(c.shuffle, ShuffleState::Pending) {
+            return Some(Work::Shuffle { id: c.id.rk.parse().ok()? });
+        }
         if c.status == CollectionStatus::Unavailable || c.status == CollectionStatus::Empty { return None; }
-        if c.id.rk.is_empty() {
+        if c.id.rk.is_empty() && c.id.group != GroupKind::Playlists {
             return (c.id.sec != 0 && c.id.tag != 0).then(|| Work::Resolve {
                 sec: c.id.sec, tag: c.id.tag, name: c.id.name.clone(),
             });
         }
         if !c.header_ready { return Some(Work::Header { rk: c.id.rk.clone() }); }
+        let children = |start| match c.id.group {
+            GroupKind::Collection => Work::Children { rk: c.id.rk.clone(), start },
+            GroupKind::Playlists => Work::Playlists { start },
+            GroupKind::Playlist => Work::PlaylistItems { id: c.id.rk.parse().unwrap_or(0), start },
+        };
         // A page the screen shows or restores to, read earlier and since evicted: a re-read at its
         // own offset, which the directory's known count makes safe.
         if let Some(page) = c.wanted_pages().into_iter().find(|&p| p < c.read) {
-            return Some(Work::Children { rk: c.id.rk.clone(), start: page * PAGE_SIZE });
+            return Some(children(page * PAGE_SIZE));
         }
         // Otherwise the frontier, in order, while the window needs indices it has not counted.
         if c.more && c.budget > 0 && c.need() > c.shown() {
-            return Some(Work::Children { rk: c.id.rk.clone(), start: c.read * PAGE_SIZE });
+            return Some(children(c.read * PAGE_SIZE));
         }
         None
     }
@@ -421,6 +450,11 @@ impl CollectionState {
         let (ledger, stamp) = (self.ledger.clone(), self.stamp);
         let Some(c) = self.current.as_mut() else { return false };
         match landing {
+            Landing::Shuffle(item) => {
+                if !matches!(c.shuffle, ShuffleState::Pending) { return false; }
+                c.shuffle = item.map_or(ShuffleState::Failed, ShuffleState::Ready);
+                true
+            }
             Landing::Header { rk, head } => {
                 // A tag route's resolution arrives with the row it was resolved from, which IS the
                 // header: no second GET for the same fields.
@@ -435,7 +469,7 @@ impl CollectionState {
                 c.status = CollectionStatus::Loading;
                 true
             }
-            Landing::Page { start, got, mut pages, total } => {
+            Landing::Page { first_entry, start, mut got, mut pages, mut total } => {
                 // The read describes the server from when it was issued: edits published since
                 // are made again on its rows (`crate::viewledger`).
                 ledger.patch(stamp, pages.iter_mut().flatten());
@@ -449,6 +483,15 @@ impl CollectionState {
                 // A re-read is asked only for a hole, so an answer for a page that still holds its
                 // rows is stale. A whole-listing answer is not one page and always lands.
                 if got <= PAGE_SIZE && base < c.read && c.pages.is_loaded(base) { return false; }
+                // Some servers ignore the offset and repeat page zero. Occurrence IDs distinguish
+                // genuinely repeated videos, even after the first page has been evicted.
+                if start == 0 {
+                    c.first_playlist_entry = first_entry;
+                } else if first_entry.is_some() && first_entry == c.first_playlist_entry && base == c.read {
+                    pages.clear();
+                    got = 0;
+                    total = start;
+                }
                 let before = c.read;
                 c.total = total.max(base * PAGE_SIZE + got);
                 c.pages.set_total(c.total);
@@ -517,6 +560,9 @@ impl CollectionState {
 /// recorded bytes.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 enum Work {
+    Shuffle { id: i64 },
+    Playlists { start: usize },
+    PlaylistItems { id: i64, start: usize },
     Resolve { sec: i64, tag: i64, name: String },
     Header { rk: String },
     Children { rk: String, start: usize },
@@ -596,7 +642,9 @@ fn collection_addr(generation: u32) -> Addr {
 pub fn finish_collection_job(port: &CollectionPort, addr: Addr, client: &'static plx_plex::plex::Client,
                              req: CollectionReq) {
     let CollectionReq { sid, work, .. } = req;
-    let what = catch_unwind(|| run_job(client, sid, work)).unwrap_or(Landing::Transport);
+    let shuffle = matches!(work, Work::Shuffle { .. });
+    let what = catch_unwind(|| run_job(client, sid, work)).unwrap_or_else(|_|
+        if shuffle { Landing::Shuffle(None) } else { Landing::Transport });
     port.done(addr, CollectionAnswer(what));
 }
 
@@ -623,12 +671,13 @@ impl Header {
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 enum Landing {
+    Shuffle(Option<Box<PmsMovie>>),
     /// The collection's header; `rk` is `Some` when it answers a tag route's resolution.
     Header { rk: Option<String>, head: Header },
     /// `got` is the server rows the response consumed. `pages[k]` holds the listable rows of server
     /// page `k` of the response (the first `PAGE_SIZE` rows, the next, and so on), so an answer
     /// that ignores paging lands as every page it covers.
-    Page { start: usize, got: usize, pages: Vec<Vec<PmsMovie>>, total: usize },
+    Page { #[serde(default, skip_serializing_if = "Option::is_none")] first_entry: Option<i64>, start: usize, got: usize, pages: Vec<Vec<PmsMovie>>, total: usize },
     Denied,
     Missing,
     Transport,
@@ -648,6 +697,41 @@ pub fn member(row: &plx_plex::plex::Metadata, sid: ServerId) -> PmsMovie {
     item
 }
 
+fn playlist_rows(page: plx_plex::plex::MediaContainer, sid: ServerId, id: Option<i64>, start: usize) -> Landing {
+    let got = page.metadata.len();
+    // Without a body offset, a repeated occurrence (or directory ratingKey) is evidence
+    // of ignored paging. An absent offset alone says nothing about where this page starts.
+    let first_entry = if page.offset == 0 {
+        page.metadata.first().and_then(|row| match id {
+            Some(_) => Some(row.playlist_item_id),
+            None => row.rating_key.parse().ok(),
+        }).filter(|key| *key > 0)
+    } else { None };
+    let base = if got > PAGE_SIZE { 0 } else { start };
+    let end = base.saturating_add(got);
+    let total = if page.total_size > 0 { page.total_size as usize }
+        else { end.saturating_add(usize::from(got == PAGE_SIZE)) };
+    let pages = page.metadata.chunks(PAGE_SIZE).enumerate().map(|(page_index, rows)| {
+        rows.iter().enumerate().filter_map(|(i, row)| {
+            if row.rating_key.parse::<i64>().ok().filter(|rk| *rk > 0).is_none() { return None; }
+            let mut item = member(row, sid);
+            if let Some(id) = id {
+                if item.part.is_empty() || !matches!(row.kind.as_str(), "movie" | "episode") { return None; }
+                let index = base + page_index * PAGE_SIZE + i;
+                item.playlist = Some(Box::new(PlaylistStart { id, index, queued: None,
+                    entry: if row.playlist_item_id > 0 { row.playlist_item_id.to_string() } else { format!("position-{index}") } }));
+            } else {
+                if row.kind != "playlist" || row.playlist_type != "video" { return None; }
+                item.thumb = [&row.thumb, &row.composite, &row.art].into_iter()
+                    .find(|path| !path.is_empty()).cloned()
+                    .unwrap_or_else(|| format!("/playlists/{}/composite", row.rating_key));
+            }
+            Some(item)
+        }).collect()
+    }).collect();
+    Landing::Page { first_entry, start, got, pages, total }
+}
+
 /// A read's page, or the landing its failure is: the one mapping of the server's non-page answers.
 fn answered(outcome: CollectionOutcome) -> Result<plx_plex::plex::MediaContainer, Landing> {
     match outcome {
@@ -661,6 +745,11 @@ fn answered(outcome: CollectionOutcome) -> Result<plx_plex::plex::MediaContainer
 fn run_job(client: &'static plx_plex::plex::Client, sid: ServerId, work: Work) -> Landing {
     let run = || -> Result<Landing, Landing> {
         Ok(match work {
+            Work::Shuffle { id } => Landing::Shuffle(client.shuffle_playlist(id).map(|(row, start)| {
+                let mut item = member(&row, sid);
+                item.playlist = Some(Box::new(start));
+                Box::new(item)
+            })),
             Work::Resolve { sec, tag, name } => {
                 let mut start = 0i64;
                 loop {
@@ -676,6 +765,11 @@ fn run_job(client: &'static plx_plex::plex::Client, sid: ServerId, work: Work) -
             }
             Work::Header { rk } => answered(client.collection(&rk))?.metadata.first()
                 .map_or(Landing::Missing, |row| Landing::Header { rk: None, head: Header::of(row) }),
+            Work::Playlists { start } | Work::PlaylistItems { start, .. } => {
+                let id = match work { Work::PlaylistItems { id, .. } => Some(id), _ => None };
+                let page = answered(client.playlist_page(id, start, PAGE_SIZE))?;
+                playlist_rows(page, sid, id, start)
+            }
             Work::Children { rk, start } => {
                 let page = answered(client.collection_children(&rk, start as i64, PAGE_SIZE as i64))?;
                 let total = page.total_size.max(page.size).max(0) as usize;
@@ -683,7 +777,7 @@ fn run_job(client: &'static plx_plex::plex::Client, sid: ServerId, work: Work) -
                 let pages = page.metadata.chunks(PAGE_SIZE).map(|rows| rows.iter()
                     .filter(|row| crate::pms::listable(&row.kind)).map(|row| member(row, sid)).collect())
                     .collect();
-                Landing::Page { start, got, pages, total }
+                Landing::Page { first_entry: None, start, got, pages, total }
             }
         })
     };
@@ -725,7 +819,7 @@ impl CollectionAdapter {
     #[cfg(any(test, feature = "test-support"))]
     pub fn land_status_for_test(&self, generation: u32, status: CollectionStatus) {
         let what = match status {
-            CollectionStatus::Empty => Landing::Page { start: 0, got: 0, pages: vec![], total: 0 },
+            CollectionStatus::Empty => Landing::Page { first_entry: None, start: 0, got: 0, pages: vec![], total: 0 },
             CollectionStatus::Unavailable => Landing::Denied,
             CollectionStatus::Failed => Landing::Transport,
             _ => Landing::Missing,
@@ -764,7 +858,7 @@ mod tests {
     }
 
     fn set_target(rk: &str, tag: i64, name: &str) -> CollectionTarget {
-        CollectionTarget { id: CollectionRef { sid: ServerId::UNSET, rk: rk.into(), sec: 1, tag,
+        CollectionTarget { id: CollectionRef { group: Default::default(), thumb: String::new(), sid: ServerId::UNSET, rk: rk.into(), sec: 1, tag,
             name: name.into() }, want: PAGE_SIZE }
     }
 
@@ -815,12 +909,12 @@ mod tests {
         let header_rev = state.view().revision();
         assert!(header_rev > opened, "a header landing is a content change");
         let page = (0..PAGE_SIZE).map(|i| PmsMovie { rk: i.to_string(), ..Default::default() }).collect();
-        adapter.land(generation, Landing::Page { start: 0, got: PAGE_SIZE, pages: vec![page], total: 130 });
+        adapter.land(generation, Landing::Page { first_entry: None, start: 0, got: PAGE_SIZE, pages: vec![page], total: 130 });
         assert!(state.take_landing_for_test(&adapter));
         let paged_rev = state.view().revision();
         assert!(paged_rev > header_rev, "a page landing is a content change");
         assert_eq!(state.generation(), generation, "…while paging leaves the request epoch alone");
-        adapter.land(generation, Landing::Page { start: 0, got: 0, pages: vec![], total: 130 });
+        adapter.land(generation, Landing::Page { first_entry: None, start: 0, got: 0, pages: vec![], total: 130 });
         assert!(!state.take_landing_for_test(&adapter));
         assert_eq!(state.view().revision(), paged_rev, "a dropped landing changes nothing");
     }
@@ -894,7 +988,7 @@ mod tests {
         assert!(state.take_landing_for_test(&adapter));
         assert!(matches!(state.work(), Some(Work::Children { start: 0, .. })));
         let page = (0..PAGE_SIZE).map(|i| PmsMovie { rk: i.to_string(), ..Default::default() }).collect();
-        adapter.land(generation, Landing::Page { start: 0, got: PAGE_SIZE, pages: vec![page], total: 130 });
+        adapter.land(generation, Landing::Page { first_entry: None, start: 0, got: PAGE_SIZE, pages: vec![page], total: 130 });
         assert!(state.take_landing_for_test(&adapter));
         let c = state.view().current().unwrap();
         assert_eq!((c.shown(), c.more, c.status), (PAGE_SIZE, true, CollectionStatus::Ready));
@@ -906,7 +1000,7 @@ mod tests {
             "a larger want on the same identity is a change, not a reopen");
         assert_eq!(state.generation(), generation, "paging does not supersede the collection");
         assert!(matches!(state.work(), Some(Work::Children { start, .. }) if start == PAGE_SIZE));
-        adapter.land(generation, Landing::Page { start: 5 * PAGE_SIZE, got: 0, pages: vec![], total: 130 });
+        adapter.land(generation, Landing::Page { first_entry: None, start: 5 * PAGE_SIZE, got: 0, pages: vec![], total: 130 });
         assert!(!state.take_landing_for_test(&adapter), "a page past the frontier is dropped");
     }
 
@@ -922,7 +1016,7 @@ mod tests {
         adapter.land(generation, Landing::Header { rk: None, head: header("Set", 130) });
         assert!(state.take_landing_for_test(&adapter));
         let listed = (0..PAGE_SIZE - 5).map(|i| PmsMovie { rk: i.to_string(), ..Default::default() }).collect();
-        adapter.land(generation, Landing::Page { start: 0, got: PAGE_SIZE, pages: vec![listed], total: 130 });
+        adapter.land(generation, Landing::Page { first_entry: None, start: 0, got: PAGE_SIZE, pages: vec![listed], total: 130 });
         assert!(state.take_landing_for_test(&adapter));
         state.run_bare(&adapter, CollectionCmd::Open { target: CollectionTarget {
             want: 2 * PAGE_SIZE, ..set_target("50001", 7, "Set") } });
@@ -935,7 +1029,7 @@ mod tests {
         let generation = state.generation();
         adapter.land(generation, Landing::Header { rk: None, head: header("Clips", 3) });
         assert!(state.take_landing_for_test(&adapter));
-        adapter.land(generation, Landing::Page { start: 0, got: 3, pages: vec![vec![]], total: 3 });
+        adapter.land(generation, Landing::Page { first_entry: None, start: 0, got: 3, pages: vec![vec![]], total: 3 });
         assert!(state.take_landing_for_test(&adapter));
         let c = state.view().current().unwrap();
         assert_eq!((c.status, c.more), (CollectionStatus::Empty, false));
@@ -1047,7 +1141,7 @@ mod tests {
             requests.push(start);
             let got = PAGE_SIZE.min(total - start);
             let rows = (start..start + got).filter(|&s| keep(s)).map(movie).collect();
-            adapter.land(state.generation(), Landing::Page { start, got, pages: vec![rows], total });
+            adapter.land(state.generation(), Landing::Page { first_entry: None, start, got, pages: vec![rows], total });
             assert!(state.take_landing_for_test(adapter));
         }
     }
@@ -1342,7 +1436,7 @@ mod tests {
             while let Some(Work::Children { start, .. }) = state.work() {
                 let rows: Vec<Vec<PmsMovie>> = (0..total).map(movie).collect::<Vec<_>>()
                     .chunks(PAGE_SIZE).map(|page| page.to_vec()).collect();
-                adapter.land(state.generation(), Landing::Page { start, got: total, pages: rows, total });
+                adapter.land(state.generation(), Landing::Page { first_entry: None, start, got: total, pages: rows, total });
                 assert!(state.take_landing_for_test(&adapter));
                 answers += 1;
                 assert!(answers < 20);

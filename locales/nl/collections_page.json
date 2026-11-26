@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "Geen collecties in {library}"
+  "collections_page.empty": "Geen collecties in {library}",
+  "collections_page.playlist_tab": "Afspeellijsten",
+  "collections_page.playlist_kind": "Videoafspeellijst",
+  "collections_page.playlist_heading": "Videoafspeellijsten",
+  "collections_page.playlist_order": "Video’s in de volgorde van de afspeellijst",
+  "collections_page.playlist_shuffle": "Willekeurig afspelen",
+  "collections_page.playlist_shuffle_failed": "Willekeurig afspelen mislukt · Opnieuw proberen",
+  "collections_page.playlist_shuffling": "Volgorde wordt geschud…",
+  "collections_page.playlist_empty_directory": "Geen videoafspeellijsten op deze server",
+  "collections_page.playlist_empty_members": "Geen afspeelbare video’s in deze afspeellijst",
+  "collections_page.playlist_queue_failed": "De afspeellijst kon niet bij de geselecteerde video worden geopend. Open de afspeellijst opnieuw en probeer het nog eens.",
+  "collections_page.playlist_unavailable": "Afspeellijsten zijn niet beschikbaar voor dit profiel"
 }

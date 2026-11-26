@@ -2014,6 +2014,7 @@ impl HomeScreen {
             STRIP_MOVIES_ELEM => HomeReq::Tab(HomeTab::Movies),
             STRIP_SHOWS_ELEM => HomeReq::Tab(HomeTab::Shows),
             STRIP_SEARCH_ELEM => HomeReq::Tab(HomeTab::Search),
+            plx_ui::widgets::TAB_KEY_PLAYLISTS => HomeReq::Tab(HomeTab::Playlists),
             STRIP_WATCHLIST_ELEM => HomeReq::Tab(HomeTab::Watchlist),
             STRIP_ACCOUNT_ELEM => HomeReq::Account,
             _ => return None,
@@ -2075,6 +2076,7 @@ impl HomeScreen {
                     HomeTab::Movies => STRIP_MOVIES_ELEM,
                     HomeTab::Shows => STRIP_SHOWS_ELEM,
                     HomeTab::Search => STRIP_SEARCH_ELEM,
+                    HomeTab::Playlists => plx_ui::widgets::TAB_KEY_PLAYLISTS,
                     HomeTab::Watchlist => STRIP_WATCHLIST_ELEM,
                 };
                 self.strip_chosen = true;

@@ -5,5 +5,49 @@
       "library": "str"
     },
     "description": "Collections page, when the library has no collections: one sentence naming the library (No collections in Films). Shown in the middle of the page, so keep it short."
+  },
+  "collections_page.playlist_tab": {
+    "value": "Playlists",
+    "description": "Top navigation tab for the active server’s playlists."
+  },
+  "collections_page.playlist_kind": {
+    "value": "Video playlist",
+    "description": "Media type in the playlist detail header."
+  },
+  "collections_page.playlist_heading": {
+    "value": "Video playlists",
+    "description": "Heading above the directory of video playlists."
+  },
+  "collections_page.playlist_order": {
+    "value": "Videos in playlist order",
+    "description": "Heading above the ordered members of a playlist."
+  },
+  "collections_page.playlist_shuffle": {
+    "value": "Shuffle",
+    "description": "Button to play the videos in random order."
+  },
+  "collections_page.playlist_shuffle_failed": {
+    "value": "Shuffle failed · Retry",
+    "description": "Shuffle button after a request fails. Selecting it retries."
+  },
+  "collections_page.playlist_shuffling": {
+    "value": "Shuffling…",
+    "description": "Shuffle button while the server prepares the queue."
+  },
+  "collections_page.playlist_empty_directory": {
+    "value": "No video playlists on this server",
+    "description": "Empty state when the server has no video playlists."
+  },
+  "collections_page.playlist_empty_members": {
+    "value": "No playable videos in this playlist",
+    "description": "Empty state when a playlist has no playable video members."
+  },
+  "collections_page.playlist_queue_failed": {
+    "value": "Could not open this playlist at the selected video. Reopen the playlist and try again.",
+    "description": "Playback error when the server cannot resolve the selected occurrence in the playlist."
+  },
+  "collections_page.playlist_unavailable": {
+    "value": "Playlists are unavailable for this profile",
+    "description": "Read-out when the server denies playlist access or the playlist no longer exists."
   }
 }

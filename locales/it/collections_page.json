@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "Nessuna raccolta in {library}"
+  "collections_page.empty": "Nessuna raccolta in {library}",
+  "collections_page.playlist_tab": "Playlist",
+  "collections_page.playlist_kind": "Playlist video",
+  "collections_page.playlist_heading": "Playlist video",
+  "collections_page.playlist_order": "Video in ordine di playlist",
+  "collections_page.playlist_shuffle": "Riproduzione casuale",
+  "collections_page.playlist_shuffle_failed": "Riproduzione casuale non riuscita · Riprova",
+  "collections_page.playlist_shuffling": "Preparazione in corso…",
+  "collections_page.playlist_empty_directory": "Nessuna playlist video su questo server",
+  "collections_page.playlist_empty_members": "Nessun video riproducibile in questa playlist",
+  "collections_page.playlist_queue_failed": "Impossibile aprire la playlist sul video selezionato. Riapri la playlist e riprova.",
+  "collections_page.playlist_unavailable": "Le playlist non sono disponibili per questo profilo"
 }

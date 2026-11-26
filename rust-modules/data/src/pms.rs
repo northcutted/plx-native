@@ -77,6 +77,8 @@ pub const SEASON_UNKNOWN: c_int = -1;
 #[derive(Default, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields, remote = "Self")]
 pub struct PmsMovie {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub playlist: Option<Box<plx_plex::plex::collections::PlaylistStart>>,
     /// WHICH SERVER this row came from. Every other identity on it — `rk`, `show_rk`, `part` — is a
     /// server-local key that a second server reuses from 1 (docs/shared-servers.md §2 measured the
     /// collision), so the row is only addressable as the PAIR `(sid, rk)`; see

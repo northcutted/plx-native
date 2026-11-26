@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "У бібліятэцы {library} няма калекцый"
+  "collections_page.empty": "У бібліятэцы {library} няма калекцый",
+  "collections_page.playlist_tab": "Плэйлісты",
+  "collections_page.playlist_kind": "Відэаплэйліст",
+  "collections_page.playlist_heading": "Відэаплэйлісты",
+  "collections_page.playlist_order": "Відэа ў парадку плэйліста",
+  "collections_page.playlist_shuffle": "Перамяшаць",
+  "collections_page.playlist_shuffle_failed": "Не ўдалося перамяшаць · Паўтарыць",
+  "collections_page.playlist_shuffling": "Перамешванне…",
+  "collections_page.playlist_empty_directory": "На гэтым серверы няма відэаплэйлістоў",
+  "collections_page.playlist_empty_members": "У гэтым плэйлісце няма відэа, якія можна прайграць",
+  "collections_page.playlist_queue_failed": "Не ўдалося адкрыць плэйліст на выбраным відэа. Адкрыйце плэйліст і паспрабуйце яшчэ раз.",
+  "collections_page.playlist_unavailable": "Плэйлісты недаступныя для гэтага профілю"
 }

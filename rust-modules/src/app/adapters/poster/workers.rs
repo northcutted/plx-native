@@ -30,7 +30,7 @@ fn decode(bytes: &[u8]) -> Option<Rgba> {
 /// Is the bake that started under `(cache_gen, token_gen, profile)` still the one in force? A bake
 /// that straddles a sign-out, a retoken or a profile switch is still delivered to its (now
 /// unreachable) slot, but never filed on disk.
-fn current(client: &Client, cache_gen: u64, token_gen: u32, profile: Option<&str>) -> bool {
+pub(super) fn current(client: &Client, cache_gen: u64, token_gen: u32, profile: Option<&str>) -> bool {
     cache_gen == plx_platform::imgcache::generation()
         && client.token_gen() == token_gen
         && profile.is_none_or(|p| plx_plex::plex::session::current_profile_key() == p)
@@ -199,7 +199,7 @@ impl CardIo for WorkerCardIo<'_> {
     }
     fn load(&mut self, part: Part) -> Got<Source> {
         let path = self.request(part);
-        let loaded = super::load_art(self.client, self.srv, &path, self.cache_gen, decode);
+        let loaded = super::load_art(self.client, self.srv, &path, self.cache_gen, self.token_gen, decode);
         match loaded.art {
             Some(img) => Got::Ok(Source { img, stale: loaded.stale.is_some() }),
             None if loaded.transient => Got::Transient,

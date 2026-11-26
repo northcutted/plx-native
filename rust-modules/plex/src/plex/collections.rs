@@ -9,12 +9,40 @@ use super::models::{MediaContainer, Metadata};
 use super::paging::{paged_path, PageReq};
 use super::ServerId;
 
+/// Source of the shared, ordered card browser.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum GroupKind {
+    #[default]
+    Collection,
+    Playlists,
+    Playlist,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct PlaylistStart {
+    pub id: i64,
+    pub index: usize,
+    pub entry: String,
+    /// A shuffle has already created its queue and picked the starting video.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub queued: Option<PlaylistQueueItem>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct PlaylistQueueItem {
+    pub queue_id: i64,
+    pub item_id: i64,
+}
+
 /// One collection as a link names it: by `rk` (its ratingKey) when the link carries one, else by
 /// `sec` + `tag` (the member-tag id space) for the collection store to resolve against the
 /// section's collection listing. `name` is the title shown until the collection's own metadata
 /// lands — it is never identity.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CollectionRef {
+    pub group: GroupKind,
+    /// The cover carried from a playlist card to its detail header.
+    pub thumb: String,
     pub sid: ServerId,
     pub rk: String,
     pub sec: i64,
@@ -25,22 +53,31 @@ pub struct CollectionRef {
 impl CollectionRef {
     /// A link that knows the collection's ratingKey (a promoted shelf, a library tile).
     pub fn by_rk(sid: ServerId, rk: &str, sec: i64, name: &str) -> Self {
-        Self { sid, rk: rk.to_owned(), sec, tag: 0, name: name.to_owned() }
+        Self { group: GroupKind::Collection, thumb: String::new(), sid, rk: rk.to_owned(), sec, tag: 0, name: name.to_owned() }
+    }
+
+    pub fn playlist_directory(sid: ServerId, name: &str) -> Self {
+        Self { group: GroupKind::Playlists, ..Self::by_rk(sid, "", 0, name) }
+    }
+
+    pub fn playlist(sid: ServerId, rk: &str, name: &str, thumb: &str) -> Self {
+        Self { group: GroupKind::Playlist, thumb: thumb.to_owned(), ..Self::by_rk(sid, rk, 0, name) }
     }
 
     /// A link that knows only the collection's tag id within a section (a member's
     /// `collection.related` hub, a tag-shaped search hit).
     pub fn by_tag(sid: ServerId, sec: i64, tag: i64, name: &str) -> Self {
-        Self { sid, rk: String::new(), sec, tag, name: name.to_owned() }
+        Self { group: GroupKind::Collection, thumb: String::new(), sid, rk: String::new(), sec, tag, name: name.to_owned() }
     }
 
     /// THE collection identity rule. Two ratingKeys compare when both sides carry one; otherwise
     /// the server, section and a non-zero tag id must all agree. A ratingKey is never compared
     /// with a tag id, and a zero tag names nothing.
     pub fn same_collection(&self, other: &Self) -> bool {
-        if self.sid != other.sid {
+        if self.sid != other.sid || self.group != other.group {
             return false;
         }
+        if self.group == GroupKind::Playlists { return true; }
         if !self.rk.is_empty() && !other.rk.is_empty() {
             self.rk == other.rk
         } else {
@@ -50,7 +87,7 @@ impl CollectionRef {
 
     /// Names no collection at all — neither a ratingKey nor a tag to resolve.
     pub fn is_identityless(&self) -> bool {
-        self.rk.is_empty() && self.tag == 0
+        self.group != GroupKind::Playlists && self.rk.is_empty() && self.tag == 0
     }
 }
 
@@ -99,7 +136,25 @@ pub fn collections_count_path(section: i64) -> String {
     )
 }
 
+/// The numeric playlist named by a PMS composite image path (raw or authenticated).
+pub fn playlist_composite_id(path: &str) -> Option<i64> {
+    let mut parts = path.split('?').next()?.strip_prefix("/playlists/")?.split('/');
+    let id = parts.next()?.parse().ok().filter(|id| *id > 0)?;
+    if parts.next()? != "composite" { return None; }
+    if let Some(stamp) = parts.next() {
+        if stamp.is_empty() || !stamp.bytes().all(|b| b.is_ascii_digit()) { return None; }
+    }
+    parts.next().is_none().then_some(id)
+}
+
 impl Client {
+    /// A playlist composite is an image endpoint which accepts its own dimensions.
+    pub fn playlist_image_request(&self, path: &str, width: i64, height: i64) -> Option<String> {
+        playlist_composite_id(path)?;
+        let resource = path.split('?').next()?;
+        Some(self.with_token(&format!("{resource}?width={width}&height={height}")))
+    }
+
     /// How many collections `section` holds, from one `Size=0` probe of
     /// `/library/sections/{section}/all?type=18` reading `totalSize`.
     pub fn collections_count(&self, section: i64) -> CollectionsCount {
@@ -137,6 +192,12 @@ impl Client {
             PageReq::window(start, size),
         );
         self.collection_get(&path)
+    }
+
+    pub fn playlist_page(&self, id: Option<i64>, start: usize, size: usize) -> CollectionOutcome {
+        let path = id.map_or_else(|| "/playlists?type=15&playlistType=video".to_owned(),
+            |id| format!("/playlists/{id}/items"));
+        self.collection_get(&paged_path(&path, PageReq::window(start as i64, size as i64)))
     }
 
     fn collection_get(&self, path: &str) -> CollectionOutcome {
@@ -383,7 +444,7 @@ mod tests {
     #[test]
     fn collection_identity_never_compares_a_tag_with_a_rating_key() {
         let sid = ServerId::from_raw(2);
-        let at = |rk: &str, tag| CollectionRef { sid, rk: rk.into(), sec: 4, tag, name: "A".into() };
+        let at = |rk: &str, tag| CollectionRef { group: GroupKind::Collection, thumb: String::new(), sid, rk: rk.into(), sec: 4, tag, name: "A".into() };
         assert!(at("50077", 77).same_collection(&at("50077", 99)),
             "two resolved identities compare their ratingKey");
         assert!(!at("50077", 77).same_collection(&at("50078", 77)),

@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "Aucune collection dans {library}"
+  "collections_page.empty": "Aucune collection dans {library}",
+  "collections_page.playlist_tab": "Listes de lecture",
+  "collections_page.playlist_kind": "Liste de lecture vidéo",
+  "collections_page.playlist_heading": "Listes de lecture vidéo",
+  "collections_page.playlist_order": "Vidéos dans l’ordre de la liste",
+  "collections_page.playlist_shuffle": "Lecture aléatoire",
+  "collections_page.playlist_shuffle_failed": "Échec du mélange · Réessayer",
+  "collections_page.playlist_shuffling": "Mélange en cours…",
+  "collections_page.playlist_empty_directory": "Aucune liste de lecture vidéo sur ce serveur",
+  "collections_page.playlist_empty_members": "Aucune vidéo lisible dans cette liste",
+  "collections_page.playlist_queue_failed": "Impossible d’ouvrir cette liste à la vidéo sélectionnée. Rouvrez la liste et réessayez.",
+  "collections_page.playlist_unavailable": "Les listes de lecture ne sont pas disponibles pour ce profil"
 }

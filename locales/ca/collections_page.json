@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "No hi ha col·leccions a {library}"
+  "collections_page.empty": "No hi ha col·leccions a {library}",
+  "collections_page.playlist_tab": "Llistes de reproducció",
+  "collections_page.playlist_kind": "Llista de vídeos",
+  "collections_page.playlist_heading": "Llistes de vídeos",
+  "collections_page.playlist_order": "Vídeos en l’ordre de la llista",
+  "collections_page.playlist_shuffle": "Reprodueix aleatòriament",
+  "collections_page.playlist_shuffle_failed": "No s’ha pogut barrejar · Torna-ho a provar",
+  "collections_page.playlist_shuffling": "S’està barrejant…",
+  "collections_page.playlist_empty_directory": "No hi ha llistes de vídeos en aquest servidor",
+  "collections_page.playlist_empty_members": "No hi ha vídeos que es puguin reproduir en aquesta llista",
+  "collections_page.playlist_queue_failed": "No s’ha pogut obrir la llista al vídeo seleccionat. Torna a obrir la llista i prova-ho de nou.",
+  "collections_page.playlist_unavailable": "Les llistes de reproducció no estan disponibles per a aquest perfil"
 }

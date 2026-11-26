@@ -14,6 +14,7 @@ use std::ops::Range;
 
 #[derive(Clone, Debug)]
 pub enum CollectionCmd {
+    Shuffle { generation: u32 },
     Open { target: CollectionTarget },
     /// The screen's window: the indices it shows, the focused index and a pending restore target.
     /// Every landing evicts the pages outside these (see `PageCache::evict`).

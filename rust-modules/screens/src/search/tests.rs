@@ -954,7 +954,7 @@ fn a_collection_hit_routes_by_rating_key_or_by_section_and_tag_id() {
     assert_eq!(
         hit.route(),
         Some(ContentArg::Collection(CollectionRef {
-            sid,
+            group: Default::default(), thumb: String::new(), sid,
             rk: "50007".into(),
             sec: 1,
             tag: 7,

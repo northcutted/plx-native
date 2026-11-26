@@ -41,7 +41,7 @@ fn recording() -> ServerId {
 
 fn open(bridge: &mut Bridge, sid: ServerId, rk: &str, sec: i64, tag: i64) {
     assert!(bridge.collection_run(CollectionCmd::Open { target: CollectionTarget {
-        id: CollectionRef { sid, rk: rk.into(), sec, tag, name: "Set".into() }, want: PAGE_SIZE } }));
+        id: CollectionRef { group: Default::default(), thumb: String::new(), sid, rk: rk.into(), sec, tag, name: "Set".into() }, want: PAGE_SIZE } }));
 }
 
 /// One frame's collection pump, as `run.rs` makes it.

@@ -67,8 +67,26 @@ fn answer(line: &str, show_queue: ShowQueue) -> Vec<u8> {
     if line.contains("/decision?") {
         return MDE_DIRECTPLAY.to_vec();
     }
+    if line.starts_with("GET /playQueues/99?") || (line.starts_with("POST /playQueues?")
+        && query_param(line, "playlistID").as_deref() == Some("55") && query_param(line, "shuffle").as_deref() == Some("1")) {
+        let rows = [episode_row("104", 3001, 4), episode_row("101", 3002, 1), episode_row("101", 3003, 1)].join(",");
+        return format!(r#"{{"MediaContainer":{{"playQueueID":99,"playQueueSelectedItemID":3001,"playQueueSelectedItemOffset":0,"playQueueTotalCount":3,"Metadata":[{rows}]}}}}"#).into_bytes();
+    }
+    if query_param(line, "playlistID").as_deref() == Some("77") || line.starts_with("GET /playQueues/77?") {
+        let start = query_param(line, "X-Plex-Container-Start").and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+        let rows: Vec<_> = (start..start + 50).map(|at| {
+            let rk = if at == 0 || at == 900 { "101" } else { "102" };
+            episode_row(rk, 8000 + at as i64, at + 1)
+        }).collect();
+        return format!(r#"{{"MediaContainer":{{"playQueueID":77,"playQueueSelectedItemID":8000,"playQueueSelectedItemOffset":0,"playQueueTotalCount":1000,"offset":{start},"Metadata":[{}]}}}}"#, rows.join(",")).into_bytes();
+    }
     if !line.starts_with("POST /playQueues") {
         return EMPTY_MC.to_vec();
+    }
+    if query_param(line, "playlistID").as_deref() == Some("55") {
+        let rows = [episode_row("101", 7001, 1), episode_row("102", 7002, 2),
+            episode_row("101", 7003, 3), episode_row("104", 7004, 4).replace("episode", "movie")].join(",");
+        return format!(r#"{{"MediaContainer":{{"playQueueID":88,"playQueueSelectedItemID":7001,"playQueueSelectedItemOffset":0,"playQueueTotalCount":4,"Metadata":[{rows}]}}}}"#).into_bytes();
     }
     let uri = query_param(line, "uri").map(|u| u.replace("%2F", "/").replace("%3A", ":")).unwrap_or_default();
     let ask = uri.rsplit('/').next().unwrap_or_default().to_owned();
@@ -157,11 +175,16 @@ impl Fx {
     /// A fresh play of episode `rk` of show `show_rk` (`""`: no show), resolved against the server:
     /// the plan the start would land.
     fn play(&self, rk: &str, show_rk: &str) -> Plan {
+        self.play_source(rk, show_rk, None)
+    }
+
+    fn play_source(&self, rk: &str, show_rk: &str, playlist: Option<plx_plex::plex::collections::PlaylistStart>) -> Plan {
         assert!(plx_net::net::global_init());
         let sid = plx_plex::plex::register_for_test("predecessor-queue", "127.0.0.1", self.pms.port, "token", "queue-client");
         let mut env = ResolveEnv::snapshot(&self.ps, plx_data::stores::metadata::MetadataStore::default().view(), sid, rk);
         env.cached_item = Some(fourk_item(sid, vec![eac3_track()]));
         env.queue_show_rk = show_rk.into();
+        env.queue_playlist = playlist;
         build_stream(
             &plx_base::task::OffFrame::for_test(),
             rk,
@@ -324,4 +347,56 @@ fn the_window_reread_waits_for_the_outgoing_stop_within_its_bound() {
     drop(stuck);
     assert!(waited >= Duration::from_millis(120) && waited < Duration::from_secs(10), "{waited:?}");
     assert_eq!(fx.pms.window_reads(), 2, "the window is still read once the bound passed");
+}
+
+#[test]
+#[cfg(feature = "devtriggers")]
+fn personal_playlist_launch_selects_second_occurrence_and_queues_movie() {
+    let fx = Fx::new(ShowQueue::Honoured);
+    let start = plx_plex::plex::collections::PlaylistStart { id: 55, index: 2, queued: None, entry: "83".into() };
+    let plan = fx.play_source("101", SHOW, Some(start));
+    assert_eq!(shape(&plan, "101").1, Some(2));
+    assert_eq!(plan.pq_item_id, "7003");
+    assert_eq!(plan.up_next.unwrap().rk, "104");
+    let posts = fx.pms.queue_posts();
+    assert_eq!(posts.len(), 1);
+    assert!(posts[0].contains("playlistID=55") && !posts[0].contains("uri="));
+}
+
+#[test]
+#[cfg(feature = "devtriggers")]
+fn personal_playlist_shuffle_starts_with_server_pick_and_reuses_queue() {
+    let fx = Fx::new(ShowQueue::Honoured);
+    assert!(plx_net::net::global_init());
+    let sid = plx_plex::plex::register_for_test("predecessor-queue", "127.0.0.1", fx.pms.port, "token", "queue-client");
+    let (first, start) = plx_plex::plex::client_for(sid).unwrap().shuffle_playlist(55).unwrap();
+    assert_eq!(first.rating_key, "104");
+    let plan = fx.play_source(&first.rating_key, SHOW, Some(start));
+    assert_eq!((plan.pq_id.as_str(), plan.pq_item_id.as_str()), ("99", "3001"));
+    assert_eq!(plan.queue.iter().map(|r| r.item_id).collect::<Vec<_>>(), [3001, 3002, 3003]);
+    assert_eq!(plan.up_next.unwrap().rk, "101");
+    let posts = fx.pms.queue_posts();
+    assert_eq!(posts.len(), 1, "a single shuffled queue survives playback startup");
+    assert!(!posts[0].contains("key="));
+}
+
+#[test]
+#[cfg(feature = "devtriggers")]
+fn personal_playlist_distant_duplicate_uses_one_verified_page() {
+    let fx = Fx::new(ShowQueue::Honoured);
+    let start = plx_plex::plex::collections::PlaylistStart { id: 77, index: 900, queued: None, entry: "9021".into() };
+    let plan = fx.play_source("101", SHOW, Some(start));
+    assert_eq!(plan.pq_item_id, "8900");
+    assert_eq!(fx.pms.window_reads(), 1);
+    assert_eq!(plan.up_next.unwrap().rk, "102");
+}
+
+#[test]
+#[cfg(feature = "devtriggers")]
+fn personal_playlist_changed_occurrence_refuses_standalone_playback() {
+    let fx = Fx::new(ShowQueue::Honoured);
+    let start = plx_plex::plex::collections::PlaylistStart { id: 55, index: 1, queued: None, entry: "82".into() };
+    let plan = fx.play_source("101", SHOW, Some(start));
+    assert_eq!(plan.verdict, Some(PlayVerdict::PlaylistUnavailable));
+    assert!(plan.url.is_empty());
 }

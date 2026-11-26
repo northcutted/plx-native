@@ -16,7 +16,7 @@ fn sid() -> ServerId { ServerId::from_raw(3) }
 fn holding() -> ClientKeys { ClientKeys::from_keys([(sid(), KEY)]) }
 
 fn target(rk: &str, tag: i64, name: &str, want: usize) -> CollectionTarget {
-    CollectionTarget { id: CollectionRef { sid: sid(), rk: rk.into(), sec: 1, tag, name: name.into() }, want }
+    CollectionTarget { id: CollectionRef { group: Default::default(), thumb: String::new(), sid: sid(), rk: rk.into(), sec: 1, tag, name: name.into() }, want }
 }
 
 fn open(store: &mut CollectionStore, rk: &str, keys: &ClientKeys) {
@@ -91,7 +91,7 @@ fn each_answer_makes_the_next_pump_emit_the_next_request() {
     store.pump(fixture_gate(), &holding());
     plx_machine::assert_fx!(store.take_jobs(), [job_of(&store, 1, children_work("50007", 0))]);
 
-    store.adapter_for_test().land(1, Landing::Page {
+    store.adapter_for_test().land(1, Landing::Page { first_entry: None,
         start: 0, got: PAGE_SIZE, pages: vec![members(PAGE_SIZE)], total: 3 * PAGE_SIZE });
     store.pump(fixture_gate(), &holding());
     // the window is full: nothing more is asked for
@@ -289,9 +289,81 @@ fn a_members_page_in_flight_across_a_watched_edit_lands_watched() {
     state.ledger.record(&ViewAt::leaf(sid(), "m1"), ViewEdit::Watched(true)); // …then the press
     let member = |rk: &str| PmsMovie { sid: sid(), rk: rk.into(), unwatched: true, resume_ms: 7, ..Default::default() };
     let _ = adapter.fetch.take();
-    adapter.land(generation, Landing::Page { start: 0, got: 3, pages: vec![vec![member("m0"), member("m1"), member("m2")]], total: 3 });
+    adapter.land(generation, Landing::Page { first_entry: None, start: 0, got: 3, pages: vec![vec![member("m0"), member("m1"), member("m2")]], total: 3 });
     assert!(state.take_landing_for_test(&adapter));
     let c = state.current.as_ref().unwrap();
     let marks: Vec<_> = (0..c.shown()).filter_map(|i| c.pages.get(i)).map(|m| (m.rk.clone(), m.watched, m.resume_ms)).collect();
     assert_eq!(marks, vec![("m0".to_string(), false, 7), ("m1".to_string(), true, 0), ("m2".to_string(), false, 7)]);
+}
+
+#[test]
+fn personal_playlist_routes_list_then_members_without_collection_lookup() {
+    let _serial = plx_base::testlock::serial();
+    let mut store = CollectionStore::default();
+    let dir = CollectionRef { group: GroupKind::Playlists, ..CollectionRef::by_rk(sid(), "", 0, "Playlists") };
+    let playlist = CollectionRef { group: GroupKind::Playlist, ..CollectionRef::by_rk(sid(), "55", 0, "My list") };
+    for (id, work) in [(dir, Work::Playlists { start: 0 }), (playlist, Work::PlaylistItems { id: 55, start: 0 })] {
+        assert!(store.run(CollectionCmd::Open { target: CollectionTarget { id, want: PAGE_SIZE } }, &holding()));
+        store.pump(fixture_gate(), &holding());
+        let (job, port) = one(&mut store);
+        assert_eq!(job.req.work, work);
+        port.done(job.addr, CollectionAnswer(Landing::Page { first_entry: None, start: 0, got: 0, pages: vec![], total: 0 }));
+        store.pump(fixture_gate(), &holding());
+    }
+}
+
+#[test]
+fn personal_playlist_wire_rows_preserve_positions_across_missing_media_and_duplicates() {
+    let mc = serde_json::from_value(serde_json::json!({"size":3,"offset":60,"Metadata":[
+        {"type":"episode","ratingKey":"27","playlistItemID":80,"Media":[{"Part":[{"key":"/p"}]}]},
+        {"type":"movie","ratingKey":"40","playlistItemID":"81"},
+        {"type":"episode","ratingKey":"27","playlistItemID":"82","Media":[{"Part":[{"key":"/p"}]}]}
+    ]})).unwrap();
+    let Landing::Page { pages, total, .. } = playlist_rows(mc, sid(), Some(5), 60) else { panic!("expected page") };
+    assert_eq!(total, 63);
+    let entries: Vec<_> = pages[0].iter().map(|m| {
+        let start = m.playlist.as_ref().unwrap();
+        (m.rk.as_str(), start.index, Collection::card_key(m))
+    }).collect();
+    assert_eq!(entries, [("27",60,"80"),("27",62,"82")]);
+    let list = serde_json::from_value(serde_json::json!({"Metadata":[
+        {"type":"playlist","playlistType":"audio","ratingKey":"22"},
+        {"type":"playlist","playlistType":"video","ratingKey":"23","composite":"/playlists/23/composite/7"},
+        {"type":"playlist","playlistType":"video","ratingKey":"24","thumb":"/library/metadata/24/thumb/9"},
+        {"type":"playlist","playlistType":"video","ratingKey":"25"}
+    ]})).unwrap();
+    let Landing::Page { pages, .. } = playlist_rows(list, sid(), None, 0) else { panic!("expected playlists") };
+    assert_eq!(pages[0].len(), 3);
+    assert_eq!(pages[0][1].thumb, "/library/metadata/24/thumb/9");
+    assert_eq!(pages[0][2].thumb, "/playlists/25/composite");
+    assert_eq!(pages[0][0].thumb, "/playlists/23/composite/7");
+}
+
+#[test]
+fn playlist_paging_uses_occurrences_when_the_body_omits_offset_and_total() {
+    let _guard = plx_base::testlock::serial();
+    for repeat in [false, true] {
+        let mut store = CollectionStore::default();
+        let id = CollectionRef::playlist(sid(), "55", "Repeats", "");
+        let keys = holding();
+        store.run(CollectionCmd::Open { target: CollectionTarget { id, want: 121 } }, &keys);
+        let page = |first: usize, count: usize| {
+            let rows: Vec<_> = (first..first + count).map(|entry| serde_json::json!({
+                "ratingKey":"9","playlistItemID":entry+1,"type":"movie","Media":[{"Part":[{"key":"/movie"}]}]
+            })).collect();
+            serde_json::from_value(serde_json::json!({"Metadata":rows})).unwrap()
+        };
+        store.pump(fixture_gate(), &keys);
+        let (job, port) = one(&mut store);
+        port.done(job.addr, CollectionAnswer(playlist_rows(page(0, PAGE_SIZE), sid(), Some(55), 0)));
+        store.pump(fixture_gate(), &keys);
+        let (job, port) = one(&mut store);
+        let second = if repeat { page(0, PAGE_SIZE) } else { page(PAGE_SIZE, 1) };
+        port.done(job.addr, CollectionAnswer(playlist_rows(second, sid(), Some(55), PAGE_SIZE)));
+        store.pump(fixture_gate(), &keys);
+        let c = store.view().current().unwrap();
+        assert_eq!(c.shown(), if repeat { PAGE_SIZE } else { PAGE_SIZE + 1 });
+        assert!(!c.more);
+        assert!(!store.has_jobs());
+    }
 }

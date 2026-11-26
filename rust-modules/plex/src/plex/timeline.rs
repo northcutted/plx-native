@@ -125,6 +125,80 @@ impl Client {
         ))
     }
 
+    /// Let PMS shuffle the whole playlist, including members the TV has never paged into its grid.
+    /// The first playable occurrence and its existing queue travel together into the player.
+    pub fn shuffle_playlist(&self, id: i64) -> Option<(super::models::Metadata, super::collections::PlaylistStart)> {
+        use super::collections::{PlaylistQueueItem, PlaylistStart};
+        let query = QueryBuilder::new("/playQueues").str("type", "video").int("playlistID", id)
+            .int("shuffle", 1).int("repeat", 0);
+        let mc = self.post_json(&self.playback_identity(query).build())?;
+        let queue_id = mc.play_queue_id;
+        if queue_id <= 0 || mc.play_queue_selected_item_id <= 0 { return None; }
+        let selected = mc.metadata.iter().position(|m| m.play_queue_item_id == mc.play_queue_selected_item_id)?;
+        let offset = usize::try_from(mc.play_queue_selected_item_offset).ok()?;
+        let (delta, row) = mc.metadata.into_iter().skip(selected).enumerate().find(|(_, m)|
+            m.play_queue_item_id > 0 && !m.rating_key.is_empty() && matches!(m.kind.as_str(), "episode" | "movie") &&
+            m.media_version(None).and_then(|(_, media)| media.part.first()).is_some_and(|part| !part.key.is_empty()))?;
+        let item_id = row.play_queue_item_id;
+        Some((row, PlaylistStart { id, index: offset.checked_add(delta)?, entry: item_id.to_string(),
+            queued: Some(PlaylistQueueItem { queue_id, item_id }) }))
+    }
+
+    /// Start at the exact occurrence the viewer picked. A rating key can appear more than once.
+    pub fn create_playlist_queue(&self, start: &super::collections::PlaylistStart, rk: &str, session: &str) -> Option<PlayQueueResult> {
+        if let Some(queued) = &start.queued {
+            let mut mc = self.queue_container(queued.queue_id, queued.item_id)?;
+            if !mc.metadata.iter().any(|m| m.play_queue_item_id == queued.item_id && m.rating_key == rk) { return None; }
+            mc.play_queue_selected_item_id = queued.item_id;
+            mc.play_queue_selected_item_offset = i64::try_from(start.index).ok()?;
+            return Some(self.complete_before(PlayQueueResult::of(mc, self.id(), rk)));
+        }
+        let query = QueryBuilder::new("/playQueues").str("type", "video").int("playlistID", start.id)
+            .str("key", &format!("/library/metadata/{rk}")).int("shuffle", 0).int("repeat", 0)
+            .str("X-Plex-Session-Identifier", session);
+        let mc = self.post_json(&self.playback_identity(query).build())?;
+        let total = usize::try_from(mc.play_queue_total_count).ok()?;
+        if start.index >= total { return None; }
+        let mut offset = usize::try_from(mc.play_queue_selected_item_offset).ok()?;
+        let mut anchor = mc.play_queue_selected_item_id;
+        let mut queue = PlayQueueResult::of(mc, self.id(), rk);
+        let mut first_window = true;
+        if queue.id <= 0 || anchor <= 0 { return None; }
+        loop {
+            let local = queue.items.iter().position(|row| row.item_id == anchor)?;
+            let base = offset.checked_sub(local)?;
+            if let Some(at) = start.index.checked_sub(base).filter(|i| *i < queue.items.len()) {
+                let row = &queue.items[at];
+                if row.rk != rk || row.item_id <= 0 { return None; }
+                queue.selected_item_id = row.item_id;
+                queue.before = start.index as i64;
+                queue.remaining = (total - start.index - 1) as i64;
+                queue.next = next_after(&queue.items, row.item_id, self.id(), rk).cloned();
+                // Center the retained window so a selection on its last row can still advance.
+                if base + queue.items.len() < total && !queue.items[at + 1..].iter().any(QueueRow::is_playable_video) {
+                    let rows = self.play_queue_window(&queue.id.to_string(), queue.selected_item_id)?;
+                    queue = queue.with_window(rows);
+                }
+                return Some(self.complete_before(queue));
+            }
+            let edge = if start.index < base { 0 } else { queue.items.len().checked_sub(1)? };
+            let next_offset = base.checked_add(edge)?;
+            if !first_window && next_offset.abs_diff(start.index) >= offset.abs_diff(start.index) { return None; }
+            anchor = queue.items[edge].item_id;
+            offset = next_offset;
+            // Request a wider window for a distant occurrence while bounding each decoded
+            // response on the TV. PMS may cap the window; progress uses actual returned rows.
+            let (page_start, rows) = self.playlist_seek_window(queue.id, anchor, start.index.abs_diff(offset), first_window.then_some(start.index))?;
+            first_window = false;
+            if let Some(base) = page_start {
+                let at = start.index.checked_sub(base)?;
+                anchor = rows.get(at)?.item_id;
+                offset = start.index;
+            }
+            queue.items = rows;
+        }
+    }
+
     /// A queue the server says has rows before the selected one, but whose answer OPENS on the
     /// selected row (a window that starts where playback does), is read again around its selected
     /// item with the existing window read ([`Client::play_queue_window`]), so Previous is not lost
@@ -217,6 +291,11 @@ pub struct QueueRow {
 }
 
 impl QueueRow {
+    /// A queue member that can be started by the video player.
+    pub fn is_playable_video(&self) -> bool {
+        matches!(self.kind.as_str(), "movie" | "episode") && !self.rk.is_empty() && !self.part.is_empty()
+    }
+
     /// Consume a queue `Metadata` row into its lean projection. BY VALUE: the strings are moved,
     /// not cloned, and the rest of the row's tree is dropped as this returns.
     pub(super) fn of(m: super::models::Metadata, sid: super::ServerId) -> QueueRow {

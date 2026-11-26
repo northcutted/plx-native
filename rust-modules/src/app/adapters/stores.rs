@@ -1417,7 +1417,7 @@ mod tests {
         let sid = plx_plex::plex::register_for_test("runner", "127.0.0.1", 9, "t", "cid");
         let keys = registry_keys();
         let mut store = CollectionStore::default();
-        let id = CollectionRef { sid, rk: "50001".into(), sec: 1, tag: 7, name: "Set".into() };
+        let id = CollectionRef { group: Default::default(), thumb: String::new(), sid, rk: "50001".into(), sec: 1, tag: 7, name: "Set".into() };
         assert!(store.run(CollectionCmd::Open { target: CollectionTarget { id, want: PAGE_SIZE } }, &keys));
         store.pump(plx_machine::landgate::fixture_gate(), &keys);
         let mut jobs = store.take_jobs();

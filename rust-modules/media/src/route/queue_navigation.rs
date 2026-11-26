@@ -101,14 +101,19 @@ impl QueueContinuation {
         super::decision::QueueInfo {
             id: self.id.clone(),
             item_id: self.rows[self.selected].item_id.to_string(),
-            up_next: self
-                .rows
-                .get(self.selected + 1)
-                .and_then(super::plan::up_next_of),
+            up_next: next_video(&self.rows, self.selected).and_then(super::plan::up_next_of),
             rows: self.rows.as_ref().clone(),
             machine_id: String::new(),
         }
     }
+}
+
+pub(super) fn next_video(rows: &[QueueRow], selected: usize) -> Option<&QueueRow> {
+    rows.get(selected + 1..)?.iter().find(|row| row.is_playable_video())
+}
+
+pub fn queue_next_video(ps: &PlaybackSession) -> Option<QueueRow> {
+    with_queue(ps, |rows| next_video(rows, current_index(ps, rows)?).cloned())
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -165,7 +170,7 @@ mod tests {
                 item_id,
                 sid,
                 rk: item_id.to_string(),
-                kind: "episode".into(),
+                kind: "episode".into(), part: format!("/library/parts/{item_id}"),
                 ..Default::default()
             })
             .collect();
@@ -201,7 +206,7 @@ mod tests {
                 item_id,
                 sid,
                 rk: item_id.to_string(),
-                kind: "episode".into(),
+                kind: "episode".into(), part: format!("/library/parts/{item_id}"),
                 ..Default::default()
             })
             .collect();

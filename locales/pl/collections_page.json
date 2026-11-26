@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "Brak kolekcji w bibliotece {library}"
+  "collections_page.empty": "Brak kolekcji w bibliotece {library}",
+  "collections_page.playlist_tab": "Playlisty",
+  "collections_page.playlist_kind": "Playlista wideo",
+  "collections_page.playlist_heading": "Playlisty wideo",
+  "collections_page.playlist_order": "Filmy w kolejności z playlisty",
+  "collections_page.playlist_shuffle": "Odtwarzaj losowo",
+  "collections_page.playlist_shuffle_failed": "Nie udało się wymieszać · Spróbuj ponownie",
+  "collections_page.playlist_shuffling": "Mieszanie…",
+  "collections_page.playlist_empty_directory": "Na tym serwerze nie ma playlist wideo",
+  "collections_page.playlist_empty_members": "Ta playlista nie zawiera filmów, które można odtworzyć",
+  "collections_page.playlist_queue_failed": "Nie udało się otworzyć playlisty na wybranym filmie. Otwórz playlistę ponownie i spróbuj jeszcze raz.",
+  "collections_page.playlist_unavailable": "Playlisty są niedostępne dla tego profilu"
 }

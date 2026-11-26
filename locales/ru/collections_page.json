@@ -1,3 +1,14 @@
 {
-  "collections_page.empty": "В медиатеке «{library}» нет коллекций"
+  "collections_page.empty": "В медиатеке «{library}» нет коллекций",
+  "collections_page.playlist_tab": "Плейлисты",
+  "collections_page.playlist_kind": "Видеоплейлист",
+  "collections_page.playlist_heading": "Видеоплейлисты",
+  "collections_page.playlist_order": "Видео по порядку плейлиста",
+  "collections_page.playlist_shuffle": "Перемешать",
+  "collections_page.playlist_shuffle_failed": "Не удалось перемешать · Повторить",
+  "collections_page.playlist_shuffling": "Перемешивание…",
+  "collections_page.playlist_empty_directory": "На этом сервере нет видеоплейлистов",
+  "collections_page.playlist_empty_members": "В этом плейлисте нет доступных для воспроизведения видео",
+  "collections_page.playlist_queue_failed": "Не удалось открыть плейлист на выбранном видео. Откройте плейлист и попробуйте ещё раз.",
+  "collections_page.playlist_unavailable": "Плейлисты недоступны для этого профиля"
 }

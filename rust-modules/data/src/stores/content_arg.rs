@@ -23,7 +23,10 @@ impl plx_machine::machine::LogicalState for ContentArg {
             Self::Person { sid, key, guid, name, thumb } => { c.u32(1).u32(u32::from(sid.raw())).str(key).str(guid).str(name).str(thumb); }
             Self::Filmography { sid, key } => { c.u32(2).u32(u32::from(sid.raw())).str(key); }
             Self::Collection(id) => {
-                c.u32(3).u32(u32::from(id.sid.raw())).str(&id.rk).u64(id.sec as u64).u64(id.tag as u64).str(&id.name);
+                use plx_plex::plex::collections::GroupKind;
+                let tag = match id.group { GroupKind::Collection => 3, GroupKind::Playlists => 5, GroupKind::Playlist => 6 };
+                c.u32(tag).u32(u32::from(id.sid.raw())).str(&id.rk).u64(id.sec as u64).u64(id.tag as u64).str(&id.name);
+                if id.group == GroupKind::Playlist { c.str(&id.thumb); }
             }
             Self::Catalog { hex } => { c.u32(4).str(&crate::watchlist::encode_hex(hex)); }
         }
