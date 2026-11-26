@@ -1,4 +1,4 @@
-{"updated":"2026-11-26T13:07:29Z",
+{"updated":"2026-11-26T13:09:03Z",
 "ci":[
 {"id":33181037225,"at":"2026-08-28T14:36:41Z","sha":"3d06fbe09","title":"lab: add remote command bridge for cloud TVs","jobs":{"cross-build (armv7) + artifact assertions":108,"host checks (NOT a device gate)":129},"pr":null,"conclusion":"success","attempt":1},
 {"id":33192163307,"at":"2026-08-28T16:54:18Z","sha":"d56cf1a71","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","pr":null,"conclusion":"failure","attempt":1,"jobs":{},"failed":["cross-build (armv7) + artifact assertions","host checks (NOT a device gate)"]},
@@ -5974,7 +5974,8 @@
 {"id":45823730747,"at":"2026-11-26T12:52:31Z","sha":"7f7858529","title":"Merge remote-tracking branch 'origin/main' into worktree-agent-ad3d24e31838539b0","pr":1552,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":19,"macOS simulator build + launch":152,"macOS tests against bundled FFmpeg and ASS":249,"Linux simulator build + launch":345}},
 {"id":45823977789,"at":"2026-11-26T12:54:07Z","sha":"ecfadaf76","title":"Tizen: select the audio track, so multi-audio titles play","pr":1566,"conclusion":"success","attempt":1,"jobs":{"Linux simulator build + launch":382,"macOS simulator build + launch":316,"macOS tests against bundled FFmpeg and ASS":290,"Windows launcher syntax":24}},
 {"id":45824311275,"at":"2026-11-26T12:56:16Z","sha":"acb940a40","title":"art_fit: focused tile composed in one card pass; copy declared by the request; alpha-weighted copy","pr":1565,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"macOS simulator build + launch":158,"Linux simulator build + launch":305,"Windows launcher syntax":21},"failed":["macOS tests against bundled FFmpeg and ASS"]},
-{"id":45824783835,"at":"2026-11-26T12:59:27Z","sha":"403af0896","title":"wip: rise grows the reach only","pr":1568,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Linux simulator build + launch":391,"macOS tests against bundled FFmpeg and ASS":140,"Windows launcher syntax":23,"macOS simulator build + launch":288}}
+{"id":45824783835,"at":"2026-11-26T12:59:27Z","sha":"403af0896","title":"wip: rise grows the reach only","pr":1568,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Linux simulator build + launch":391,"macOS tests against bundled FFmpeg and ASS":140,"Windows launcher syntax":23,"macOS simulator build + launch":288}},
+{"id":45825443600,"at":"2026-11-26T13:03:30Z","sha":"691abcdda","title":"Library order: per-profile order of favorite libraries, data layer","pr":1552,"conclusion":"success","attempt":1,"jobs":{"macOS tests against bundled FFmpeg and ASS":282,"Windows launcher syntax":18,"Linux simulator build + launch":318,"macOS simulator build + launch":158}}
 ],
 "nightly":[
 {"id":35412511191,"at":"2026-09-19T01:23:39Z","sha":"6d0599e36","title":"ci: nightly runs as a dry run on the pull requests that change it","pr":140,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"plan today's nightly":10},"failed":["ARM build + gates / build + verify"]},
