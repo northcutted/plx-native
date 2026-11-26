@@ -1,4 +1,4 @@
-{"updated":"2026-11-26T13:32:08Z",
+{"updated":"2026-11-26T13:32:37Z",
 "ci":[
 {"id":33181037225,"at":"2026-08-28T14:36:41Z","sha":"3d06fbe09","title":"lab: add remote command bridge for cloud TVs","jobs":{"cross-build (armv7) + artifact assertions":108,"host checks (NOT a device gate)":129},"pr":null,"conclusion":"success","attempt":1},
 {"id":33192163307,"at":"2026-08-28T16:54:18Z","sha":"d56cf1a71","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","pr":null,"conclusion":"failure","attempt":1,"jobs":{},"failed":["cross-build (armv7) + artifact assertions","host checks (NOT a device gate)"]},
@@ -5982,7 +5982,8 @@
 {"id":45825443600,"at":"2026-11-26T13:03:30Z","sha":"691abcdda","title":"Library order: per-profile order of favorite libraries, data layer","pr":1552,"conclusion":"success","attempt":1,"jobs":{"macOS tests against bundled FFmpeg and ASS":282,"Windows launcher syntax":18,"Linux simulator build + launch":318,"macOS simulator build + launch":158}},
 {"id":45826554931,"at":"2026-11-26T13:10:23Z","sha":"f22504861","title":"art_fit: doc fixes (sheen at rest, request identity, copy not warmed, imgtrace cause)","pr":1565,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":20,"macOS simulator build + launch":164,"Linux simulator build + launch":377,"macOS tests against bundled FFmpeg and ASS":117}},
 {"id":45827031948,"at":"2026-11-26T13:13:20Z","sha":"6cd6d2b2c","title":"Re-record the replay anchors for the Library order page on the restacked tree","pr":1554,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Linux simulator build + launch":345,"macOS tests against bundled FFmpeg and ASS":227,"Windows launcher syntax":23,"macOS simulator build + launch":143}},
-{"id":45828483535,"at":"2026-11-26T13:22:17Z","sha":"8f327007f","title":"Library order: the Settings page","pr":1554,"conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":339,"Windows launcher syntax":19,"Linux simulator build + launch":324,"macOS tests against bundled FFmpeg and ASS":139}}
+{"id":45828483535,"at":"2026-11-26T13:22:17Z","sha":"8f327007f","title":"Library order: the Settings page","pr":1554,"conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":339,"Windows launcher syntax":19,"Linux simulator build + launch":324,"macOS tests against bundled FFmpeg and ASS":139}},
+{"id":45829161340,"at":"2026-11-26T13:26:25Z","sha":"5ad5d63be","title":"scrim: square the ellipse's terms by hand, not powi (the libm gate)","pr":1568,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":20,"macOS simulator build + launch":202,"Linux simulator build + launch":337,"macOS tests against bundled FFmpeg and ASS":271}}
 ],
 "nightly":[
 {"id":35412511191,"at":"2026-09-19T01:23:39Z","sha":"6d0599e36","title":"ci: nightly runs as a dry run on the pull requests that change it","pr":140,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"plan today's nightly":10},"failed":["ARM build + gates / build + verify"]},
