@@ -267,13 +267,13 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-26T06:04:13Z",
+ "generated": "2026-11-26T06:21:53Z",
  "metrics": [
   {
-   "change30_pct": 41.6,
+   "change30_pct": 40.5,
    "change7_pct": 36.4,
-   "d30": 198.5,
-   "delta30": 82.5,
+   "d30": 200,
+   "delta30": 81.0,
    "delta7": 75.0,
    "group": "ci",
    "id": "sim|macOS simulator build + launch",
@@ -300,9 +300,9 @@
    "id": "pr_wait",
    "kind": "wait",
    "label": "PR CI wait",
-   "n_now": 169,
+   "n_now": 170,
    "n_prev": 148,
-   "now": 415,
+   "now": 415.0,
    "prev7": 426.0,
    "shown": true,
    "state": "flat",
@@ -314,8 +314,8 @@
   {
    "change30_pct": 22.1,
    "change7_pct": 2.0,
-   "d30": 340,
-   "delta30": 75,
+   "d30": 340.0,
+   "delta30": 75.0,
    "delta7": 8.0,
    "group": "ci",
    "id": "push_wait",
@@ -473,8 +473,8 @@
   {
    "change30_pct": 23.9,
    "change7_pct": 5.8,
-   "d30": 2165.0,
-   "delta30": 517.0,
+   "d30": 2165,
+   "delta30": 517,
    "delta7": 148,
    "group": "ci",
    "id": "minutes",
@@ -513,10 +513,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 25.4,
+   "change30_pct": 25.2,
    "change7_pct": 1.8,
-   "d30": 320.5,
-   "delta30": 81.5,
+   "d30": 321,
+   "delta30": 81,
    "delta7": 7.0,
    "group": "ci",
    "id": "ci|armv7 cross-build and artifact assertions",
@@ -534,10 +534,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 10.8,
+   "change30_pct": 10.3,
    "change7_pct": 11.0,
-   "d30": 337.5,
-   "delta30": 36.5,
+   "d30": 339,
+   "delta30": 35,
    "delta7": 37.0,
    "group": "ci",
    "id": "ci|host unit tests (default features)",
@@ -555,10 +555,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 34.3,
+   "change30_pct": 34.1,
    "change7_pct": 1.6,
-   "d30": 265,
-   "delta30": 91.0,
+   "d30": 265.5,
+   "delta30": 90.5,
    "delta7": 5.5,
    "group": "ci",
    "id": "sim|Linux simulator build + launch",
@@ -599,8 +599,8 @@
   {
    "change30_pct": 26.5,
    "change7_pct": 19.3,
-   "d30": 215.0,
-   "delta30": 57.0,
+   "d30": 215,
+   "delta30": 57,
    "delta7": 44.0,
    "group": "ci",
    "id": "ci|host python/shell/C gates",
@@ -620,8 +620,8 @@
   {
    "change30_pct": 33.2,
    "change7_pct": 16.0,
-   "d30": 193.0,
-   "delta30": 64.0,
+   "d30": 193,
+   "delta30": 64,
    "delta7": 35.5,
    "group": "ci",
    "id": "ci|host harness tests",
@@ -639,10 +639,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 55.0,
+   "change30_pct": 54.5,
    "change7_pct": 0.8,
-   "d30": 164.5,
-   "delta30": 90.5,
+   "d30": 165,
+   "delta30": 90,
    "delta7": 2.0,
    "group": "ci",
    "id": "ci|host lint + type-checks",
@@ -660,10 +660,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": -10.9,
+   "change30_pct": -11.1,
    "change7_pct": 7.7,
-   "d30": 284,
-   "delta30": -31,
+   "d30": 284.5,
+   "delta30": -31.5,
    "delta7": 18.0,
    "group": "ci",
    "id": "ci|host unit tests (hostsim)",
@@ -683,7 +683,7 @@
   {
    "change30_pct": 35.4,
    "change7_pct": -2.5,
-   "d30": 161,
+   "d30": 161.0,
    "delta30": 57.0,
    "delta7": -5.5,
    "group": "ci",
@@ -790,7 +790,7 @@
   {
    "change30_pct": 8.3,
    "change7_pct": -2.5,
-   "d30": 18,
+   "d30": 18.0,
    "delta30": 1.5,
    "delta7": -0.5,
    "group": "ci",
@@ -811,8 +811,8 @@
   {
    "change30_pct": 0.0,
    "change7_pct": 0.0,
-   "d30": 5.0,
-   "delta30": 0.0,
+   "d30": 5,
+   "delta30": 0,
    "delta7": 0.0,
    "group": "ci",
    "id": "ci|which gates apply",
@@ -832,8 +832,8 @@
   {
    "change30_pct": 0.0,
    "change7_pct": 0.0,
-   "d30": 3,
-   "delta30": 0,
+   "d30": 3.0,
+   "delta30": 0.0,
    "delta7": 0.0,
    "group": "ci",
    "id": "ci|cross-build (armv7) + artifact assertions",
@@ -853,8 +853,8 @@
   {
    "change30_pct": 0.0,
    "change7_pct": 0.0,
-   "d30": 3,
-   "delta30": 0,
+   "d30": 3.0,
+   "delta30": 0.0,
    "delta7": 0.0,
    "group": "ci",
    "id": "ci|host checks (NOT a device gate)",
