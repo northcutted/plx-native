@@ -281,7 +281,7 @@
    "test": "plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once"
   }
  ],
- "generated": "2026-11-26T09:43:17Z",
+ "generated": "2026-11-26T09:59:49Z",
  "metrics": [
   {
    "change30_pct": 44.6,
@@ -305,18 +305,18 @@
    "unit": "s"
   },
   {
-   "change30_pct": 15.6,
-   "change7_pct": -1.9,
+   "change30_pct": 15.5,
+   "change7_pct": -2.0,
    "d30": 361.5,
-   "delta30": 56.5,
-   "delta7": -8.0,
+   "delta30": 56.0,
+   "delta7": -8.5,
    "group": "ci",
    "id": "pr_wait",
    "kind": "wait",
    "label": "PR CI wait",
-   "n_now": 175,
+   "n_now": 176,
    "n_prev": 148,
-   "now": 418,
+   "now": 417.5,
    "prev7": 426.0,
    "shown": true,
    "state": "flat",
@@ -347,10 +347,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 26.5,
+   "change30_pct": 29.0,
    "change7_pct": 8.4,
-   "d30": 26.1,
-   "delta30": 6.9,
+   "d30": 25.6,
+   "delta30": 7.4,
    "delta7": 2.6,
    "group": "local",
    "id": "bench.app",
@@ -368,10 +368,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 23.5,
+   "change30_pct": 28.8,
    "change7_pct": 4.2,
-   "d30": 51.2,
-   "delta30": 12.0,
+   "d30": 49.1,
+   "delta30": 14.1,
    "delta7": 2.6,
    "group": "local",
    "id": "bench.screens",
@@ -383,16 +383,16 @@
    "prev7": 60.7,
    "shown": true,
    "state": "flat",
-   "state30": "flat",
+   "state30": "worse",
    "threshold_abs": 5.0,
    "threshold_pct": 25.0,
    "unit": "s"
   },
   {
-   "change30_pct": 42.2,
+   "change30_pct": 43.5,
    "change7_pct": -3.7,
-   "d30": 63.7,
-   "delta30": 26.9,
+   "d30": 63.1,
+   "delta30": 27.5,
    "delta7": -3.5,
    "group": "local",
    "id": "bench.ui",
@@ -410,10 +410,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 40.3,
+   "change30_pct": 43.5,
    "change7_pct": -1.8,
-   "d30": 147.2,
-   "delta30": 59.3,
+   "d30": 143.9,
+   "delta30": 62.6,
    "delta7": -3.8,
    "group": "local",
    "id": "bench.leaf",
@@ -431,10 +431,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 43.7,
+   "change30_pct": 37.7,
    "change7_pct": 21.0,
-   "d30": 131.0,
-   "delta30": 57.2,
+   "d30": 136.7,
+   "delta30": 51.5,
    "delta7": 32.6,
    "group": "local",
    "id": "bench.tests",
@@ -886,10 +886,10 @@
    "unit": "s"
   },
   {
-   "change30_pct": 28.6,
+   "change30_pct": 55.8,
    "change7_pct": 0.6,
-   "d30": 0.6,
-   "delta30": 0.2,
+   "d30": 0.5,
+   "delta30": 0.3,
    "delta7": 0.0,
    "group": "local",
    "id": "bench.noop",
