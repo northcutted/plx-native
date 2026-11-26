@@ -1,6 +1,5 @@
-{"updated":"2026-11-25T23:53:54Z",
+{"updated":"2026-11-26T00:59:33Z",
 "ci":[
-{"id":33028554322,"at":"2026-08-27T00:57:51Z","sha":"af2df6898","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","jobs":{"host checks (NOT a device gate)":108,"cross-build (armv7) + artifact assertions":96},"pr":null,"conclusion":"success","attempt":1},
 {"id":33181037225,"at":"2026-08-28T14:36:41Z","sha":"3d06fbe09","title":"lab: add remote command bridge for cloud TVs","jobs":{"cross-build (armv7) + artifact assertions":108,"host checks (NOT a device gate)":129},"pr":null,"conclusion":"success","attempt":1},
 {"id":33192163307,"at":"2026-08-28T16:54:18Z","sha":"d56cf1a71","title":"docs: what a rented webOS 10.3.1 set said, and the bug it found","pr":null,"conclusion":"failure","attempt":1,"jobs":{},"failed":["cross-build (armv7) + artifact assertions","host checks (NOT a device gate)"]},
 {"id":33200057774,"at":"2026-08-28T18:36:23Z","sha":"5765f4327","title":"ci: the ffmpeg build reported failure after succeeding","pr":null,"conclusion":"failure","attempt":1,"jobs":{"cross-build (armv7) + artifact assertions":111},"failed":["host checks (NOT a device gate)"]},
@@ -5902,7 +5901,8 @@
 {"id":45716118696,"at":"2026-11-25T22:46:56Z","sha":"803ea15e9","title":"Tizen: an opaque window with video, so the TV's home screen no longer shows through the player","pr":1555,"conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":238,"Linux simulator build + launch":358,"Windows launcher syntax":17,"macOS tests against bundled FFmpeg and ASS":268}},
 {"id":45718483103,"at":"2026-11-25T23:04:41Z","sha":"cc7e403f9","title":"Merge origin/main into library-order-data","pr":1552,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":21,"macOS tests against bundled FFmpeg and ASS":207,"Linux simulator build + launch":354,"macOS simulator build + launch":495}},
 {"id":45718596902,"at":"2026-11-25T23:05:28Z","sha":"cdfb72987","title":"Simplify the What's on page","pr":1557,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"Windows launcher syntax":23,"macOS tests against bundled FFmpeg and ASS":254,"Linux simulator build + launch":341,"macOS simulator build + launch":206}},
-{"id":45721531658,"at":"2026-11-25T23:27:41Z","sha":"94a374e2a","title":"Docs: empty-credit readers, replay frame counts and the account-bound preference count","pr":1552,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"macOS tests against bundled FFmpeg and ASS":188,"Linux simulator build + launch":313,"Windows launcher syntax":21,"macOS simulator build + launch":322}}
+{"id":45721531658,"at":"2026-11-25T23:27:41Z","sha":"94a374e2a","title":"Docs: empty-credit readers, replay frame counts and the account-bound preference count","pr":1552,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"macOS tests against bundled FFmpeg and ASS":188,"Linux simulator build + launch":313,"Windows launcher syntax":21,"macOS simulator build + launch":322}},
+{"id":45731889506,"at":"2026-11-26T00:53:00Z","sha":"fcd0bf527","title":"livetv: an empty Recent hides its row, with no lineup stand-in","pr":1557,"event":"pull_request","conclusion":"success","attempt":1,"jobs":{"macOS simulator build + launch":310,"macOS tests against bundled FFmpeg and ASS":218,"Windows launcher syntax":22,"Linux simulator build + launch":376}}
 ],
 "nightly":[
 {"id":35412511191,"at":"2026-09-19T01:23:39Z","sha":"6d0599e36","title":"ci: nightly runs as a dry run on the pull requests that change it","pr":140,"event":"pull_request","conclusion":"failure","attempt":1,"jobs":{"plan today's nightly":10},"failed":["ARM build + gates / build + verify"]},
@@ -6220,7 +6220,8 @@
 {"day":"2026-08-23","wf":"ci","event":"push","runs":5,"failed":0,"jobs":{"cross-build (armv7) + artifact assertions":94,"host checks (NOT a device gate)":87},"longest":97},
 {"day":"2026-08-24","wf":"ci","event":"pull_request","runs":1,"failed":0,"jobs":{"cross-build (armv7) + artifact assertions":95,"host checks (NOT a device gate)":108},"longest":108},
 {"day":"2026-08-24","wf":"ci","event":"push","runs":4,"failed":0,"jobs":{"cross-build (armv7) + artifact assertions":106,"host checks (NOT a device gate)":108},"longest":110},
-{"day":"2026-08-26","wf":"ci","event":"push","runs":1,"failed":0,"jobs":{"cross-build (armv7) + artifact assertions":99,"host checks (NOT a device gate)":125},"longest":125}
+{"day":"2026-08-26","wf":"ci","event":"push","runs":1,"failed":0,"jobs":{"cross-build (armv7) + artifact assertions":99,"host checks (NOT a device gate)":125},"longest":125},
+{"day":"2026-08-27","wf":"ci","event":"push","runs":1,"failed":0,"jobs":{"cross-build (armv7) + artifact assertions":96,"host checks (NOT a device gate)":108},"longest":108}
 ],
 "flaky":[
 {"run":40071490036,"at":"2026-10-24T06:58:17Z","sha":"f596f952d","pr":977,"job":"host unit tests (default features)","test":"plxnative_modules::app::bridge::home_retention_tests::home_worker_results_cross_the_addressed_dispatcher_ingest_once","fail":[1],"pass":[2]},
